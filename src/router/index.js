@@ -1,6 +1,6 @@
-import { defineRouter } from '#q-app/wrappers'
+/*import { defineRouter } from '#q-app/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
-import routes from './routes'
+import routes from './routes'*/
 
 /*
  * If not building with SSR mode, you can
@@ -11,8 +11,8 @@ import routes from './routes'
  * with the Router instance.
  */
 
-export default defineRouter(function (/* { store, ssrContext } */) {
-  const createHistory = process.env.SERVER
+//export default defineRouter(function (/* { store, ssrContext } */) {
+  /*const createHistory = process.env.SERVER
     ? createMemoryHistory
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
 
@@ -27,4 +27,31 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   })
 
   return Router
+})*/
+
+import { createRouter, createWebHistory } from 'vue-router'
+import routes from './routes'
+import {useAuthStore } from '../stores/auth'
+
+export default function () {
+  const Router = createRouter({
+    scrollBehavior: () => ({ left: 0, top: 0 }),
+    routes,
+    history: createWebHistory('/')
+  })
+
+Router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  const requiresAuth = to.meta.requiresAuth
+
+  if (requiresAuth && !authStore.isLoggedIn) {
+    // Not logged in, redirect to login with redirect query
+    next({ path: '/login', query: { redirect: to.fullPath } })
+  } else {
+    next() // proceed normally
+  }
 })
+
+  return Router
+}
