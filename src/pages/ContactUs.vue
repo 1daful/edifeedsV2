@@ -1,304 +1,300 @@
 <!-- src/pages/ContactUsPage.vue -->
 <template>
-  <q-layout>
-    <q-page-container>
-      <q-page class="contact-page">
-        <!-- Hero Section -->
-        <div class="hero-section q-pa-xl text-center">
-          <div class="container">
-            <h1 class="text-h3 text-weight-bold q-mb-md">Get In Touch</h1>
-            <p class="text-h6 text-grey-7 q-mb-lg">
-              We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-            </p>
-          </div>
-        </div>
+  <q-page class="contact-page">
+    <!-- Hero Section -->
+    <div class="hero-section q-pa-xl text-center">
+      <div class="container">
+        <h1 class="text-h3 text-weight-bold q-mb-md">Get In Touch</h1>
+        <p class="text-h6 text-grey-7 q-mb-lg">
+          We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+        </p>
+      </div>
+    </div>
 
-        <div class="main-content q-pa-lg">
-          <div class="row q-col-gutter-xl justify-center">
-            <!-- Contact Form -->
-            <div class="col-12 col-md-8 col-lg-6">
-              <q-card class="contact-form-card" flat bordered>
-                <q-card-section class="q-pa-xl">
-                  <div class="text-h5 q-mb-lg text-center">Send us a message</div>
+    <div class="main-content q-pa-lg">
+      <div class="row q-col-gutter-xl justify-center">
+        <!-- Contact Form -->
+        <div class="col-12 col-md-8 col-lg-6">
+          <q-card class="contact-form-card" flat bordered>
+            <q-card-section class="q-pa-xl">
+              <div class="text-h5 q-mb-lg text-center">Send us a message</div>
 
-                  <q-form
-                    @submit.prevent="submitForm"
-                    ref="contactForm"
-                    class="q-gutter-md"
+              <q-form
+                @submit.prevent="submitForm"
+                ref="contactForm"
+                class="q-gutter-md"
+              >
+                <!-- Name Field -->
+                <q-input
+                  v-model="form.name"
+                  label="Full Name *"
+                  outlined
+                  :rules="nameRules"
+                  lazy-rules
+                  :loading="isSubmitting"
+                  :disable="isSubmitting"
+                  @blur="validateField('name')"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="person" />
+                  </template>
+                </q-input>
+
+                <!-- Email Field -->
+                <q-input
+                  v-model="form.email"
+                  label="Email Address *"
+                  type="email"
+                  outlined
+                  :rules="emailRules"
+                  lazy-rules
+                  :loading="isSubmitting"
+                  :disable="isSubmitting"
+                  @blur="validateField('email')"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="email" />
+                  </template>
+                </q-input>
+
+                <!-- Phone Field -->
+                <q-input
+                  v-model="form.phone"
+                  label="Phone Number"
+                  outlined
+                  :rules="phoneRules"
+                  lazy-rules
+                  :loading="isSubmitting"
+                  :disable="isSubmitting"
+                  hint="Optional - for urgent inquiries"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="phone" />
+                  </template>
+                </q-input>
+
+                <!-- Subject Field -->
+                <q-select
+                  v-model="form.subject"
+                  :options="subjectOptions"
+                  label="Subject *"
+                  outlined
+                  :rules="subjectRules"
+                  lazy-rules
+                  :loading="isSubmitting"
+                  :disable="isSubmitting"
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="subject" />
+                  </template>
+                </q-select>
+
+                <!-- Message Field -->
+                <q-input
+                  v-model="form.message"
+                  label="Message *"
+                  type="textarea"
+                  outlined
+                  rows="5"
+                  :rules="messageRules"
+                  lazy-rules
+                  :loading="isSubmitting"
+                  :disable="isSubmitting"
+                  counter
+                  maxlength="1000"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="message" style="align-self: flex-start; margin-top: 8px;" />
+                  </template>
+                </q-input>
+
+                <!-- Priority Level -->
+                <div class="q-mb-md">
+                  <div class="text-subtitle2 q-mb-sm">Priority Level</div>
+                  <q-option-group
+                    v-model="form.priority"
+                    :options="priorityOptions"
+                    color="primary"
+                    inline
+                    :disable="isSubmitting"
+                  />
+                </div>
+
+                <!-- Newsletter Subscription -->
+                <q-checkbox
+                  v-model="form.subscribeNewsletter"
+                  label="Subscribe to our newsletter for updates"
+                  :disable="isSubmitting"
+                  class="q-mb-md"
+                />
+
+                <!-- Terms Agreement -->
+                <q-checkbox
+                  v-model="form.agreeTerms"
+                  :disable="isSubmitting"
+                  class="q-mb-lg"
+                >
+                  <template v-slot:default>
+                    <div class="text-caption">
+                      I agree to the
+                      <a href="#" class="text-primary">Terms of Service</a>
+                      and
+                      <a href="#" class="text-primary">Privacy Policy</a> *
+                    </div>
+                  </template>
+                </q-checkbox>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                  <q-btn
+                    label="Send Message"
+                    type="submit"
+                    color="primary"
+                    size="lg"
+                    :loading="isSubmitting"
+                    :disable="!isFormValid"
+                    class="q-px-xl"
+                    no-caps
                   >
-                    <!-- Name Field -->
-                    <q-input
-                      v-model="form.name"
-                      label="Full Name *"
-                      outlined
-                      :rules="nameRules"
-                      lazy-rules
-                      :loading="isSubmitting"
-                      :disable="isSubmitting"
-                      @blur="validateField('name')"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="person" />
-                      </template>
-                    </q-input>
-
-                    <!-- Email Field -->
-                    <q-input
-                      v-model="form.email"
-                      label="Email Address *"
-                      type="email"
-                      outlined
-                      :rules="emailRules"
-                      lazy-rules
-                      :loading="isSubmitting"
-                      :disable="isSubmitting"
-                      @blur="validateField('email')"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="email" />
-                      </template>
-                    </q-input>
-
-                    <!-- Phone Field -->
-                    <q-input
-                      v-model="form.phone"
-                      label="Phone Number"
-                      outlined
-                      :rules="phoneRules"
-                      lazy-rules
-                      :loading="isSubmitting"
-                      :disable="isSubmitting"
-                      hint="Optional - for urgent inquiries"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="phone" />
-                      </template>
-                    </q-input>
-
-                    <!-- Subject Field -->
-                    <q-select
-                      v-model="form.subject"
-                      :options="subjectOptions"
-                      label="Subject *"
-                      outlined
-                      :rules="subjectRules"
-                      lazy-rules
-                      :loading="isSubmitting"
-                      :disable="isSubmitting"
-                      emit-value
-                      map-options
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="subject" />
-                      </template>
-                    </q-select>
-
-                    <!-- Message Field -->
-                    <q-input
-                      v-model="form.message"
-                      label="Message *"
-                      type="textarea"
-                      outlined
-                      rows="5"
-                      :rules="messageRules"
-                      lazy-rules
-                      :loading="isSubmitting"
-                      :disable="isSubmitting"
-                      counter
-                      maxlength="1000"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="message" style="align-self: flex-start; margin-top: 8px;" />
-                      </template>
-                    </q-input>
-
-                    <!-- Priority Level -->
-                    <div class="q-mb-md">
-                      <div class="text-subtitle2 q-mb-sm">Priority Level</div>
-                      <q-option-group
-                        v-model="form.priority"
-                        :options="priorityOptions"
-                        color="primary"
-                        inline
-                        :disable="isSubmitting"
-                      />
-                    </div>
-
-                    <!-- Newsletter Subscription -->
-                    <q-checkbox
-                      v-model="form.subscribeNewsletter"
-                      label="Subscribe to our newsletter for updates"
-                      :disable="isSubmitting"
-                      class="q-mb-md"
-                    />
-
-                    <!-- Terms Agreement -->
-                    <q-checkbox
-                      v-model="form.agreeTerms"
-                      :disable="isSubmitting"
-                      class="q-mb-lg"
-                    >
-                      <template v-slot:default>
-                        <div class="text-caption">
-                          I agree to the
-                          <a href="#" class="text-primary">Terms of Service</a>
-                          and
-                          <a href="#" class="text-primary">Privacy Policy</a> *
-                        </div>
-                      </template>
-                    </q-checkbox>
-
-                    <!-- Submit Button -->
-                    <div class="text-center">
-                      <q-btn
-                        label="Send Message"
-                        type="submit"
-                        color="primary"
-                        size="lg"
-                        :loading="isSubmitting"
-                        :disable="!isFormValid"
-                        class="q-px-xl"
-                        no-caps
-                      >
-                        <template v-slot:loading>
-                          <q-spinner-hourglass class="on-left" />
-                          Sending...
-                        </template>
-                      </q-btn>
-                    </div>
-                  </q-form>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <!-- Contact Information Sidebar -->
-            <div class="col-12 col-md-4 col-lg-3">
-              <q-card flat bordered class="contact-info-card">
-                <q-card-section class="q-pa-lg">
-                  <div class="text-h6 q-mb-md">Contact Information</div>
-
-                  <div class="contact-item q-mb-md">
-                    <q-icon name="location_on" color="primary" size="sm" class="q-mr-sm" />
-                    <div>
-                      <div class="text-weight-medium">Address</div>
-                      <div class="text-caption text-grey-7">
-                        123 Business Street<br>
-                        Suite 100<br>
-                        City, State 12345
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="contact-item q-mb-md">
-                    <q-icon name="phone" color="primary" size="sm" class="q-mr-sm" />
-                    <div>
-                      <div class="text-weight-medium">Phone</div>
-                      <div class="text-caption text-grey-7">+1 (555) 123-4567</div>
-                    </div>
-                  </div>
-
-                  <div class="contact-item q-mb-md">
-                    <q-icon name="email" color="primary" size="sm" class="q-mr-sm" />
-                    <div>
-                      <div class="text-weight-medium">Email</div>
-                      <div class="text-caption text-grey-7">hello@company.com</div>
-                    </div>
-                  </div>
-
-                  <div class="contact-item q-mb-lg">
-                    <q-icon name="schedule" color="primary" size="sm" class="q-mr-sm" />
-                    <div>
-                      <div class="text-weight-medium">Business Hours</div>
-                      <div class="text-caption text-grey-7">
-                        Mon - Fri: 9:00 AM - 6:00 PM<br>
-                        Saturday: 10:00 AM - 4:00 PM<br>
-                        Sunday: Closed
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Social Media Links -->
-                  <div class="text-center">
-                    <div class="text-subtitle2 q-mb-sm">Follow Us</div>
-                    <q-btn
-                      flat
-                      round
-                      color="primary"
-                      icon="fab fa-facebook"
-                      class="q-ma-xs"
-                      @click="openSocialLink('facebook')"
-                    />
-                    <q-btn
-                      flat
-                      round
-                      color="primary"
-                      icon="fab fa-twitter"
-                      class="q-ma-xs"
-                      @click="openSocialLink('twitter')"
-                    />
-                    <q-btn
-                      flat
-                      round
-                      color="primary"
-                      icon="fab fa-linkedin"
-                      class="q-ma-xs"
-                      @click="openSocialLink('linkedin')"
-                    />
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- FAQ Quick Links -->
-              <q-card flat bordered class="q-mt-md">
-                <q-card-section class="q-pa-lg">
-                  <div class="text-h6 q-mb-md">Quick Help</div>
-                  <q-list>
-                    <q-item clickable v-ripple @click="openFAQ">
-                      <q-item-section avatar>
-                        <q-icon name="help_outline" color="primary" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>Frequently Asked Questions</q-item-label>
-                        <q-item-label caption>Find quick answers</q-item-label>
-                      </q-item-section>
-                    </q-item>
-
-                    <q-item clickable v-ripple @click="openSupport">
-                      <q-item-section avatar>
-                        <q-icon name="support_agent" color="primary" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>Live Support</q-item-label>
-                        <q-item-label caption>Chat with our team</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-card-section>
-              </q-card>
-            </div>
-          </div>
+                    <template v-slot:loading>
+                      <q-spinner-hourglass class="on-left" />
+                      Sending...
+                    </template>
+                  </q-btn>
+                </div>
+              </q-form>
+            </q-card-section>
+          </q-card>
         </div>
 
-        <!-- Success/Error Notifications -->
-        <q-dialog v-model="showSuccessDialog" persistent>
-          <q-card style="min-width: 350px">
-            <q-card-section class="text-center q-pa-lg">
-              <q-avatar size="80px" color="positive" text-color="white" class="q-mb-md">
-                <q-icon name="check_circle" size="50px" />
-              </q-avatar>
-              <div class="text-h6 q-mb-sm">Message Sent Successfully!</div>
-              <div class="text-body2 text-grey-7">
-                Thank you, {{ submittedName }}! We've received your message and will get back to you within 24 hours.
+        <!-- Contact Information Sidebar -->
+        <div class="col-12 col-md-4 col-lg-3">
+          <q-card flat bordered class="contact-info-card">
+            <q-card-section class="q-pa-lg">
+              <div class="text-h6 q-mb-md">Contact Information</div>
+
+              <div class="contact-item q-mb-md">
+                <q-icon name="location_on" color="primary" size="sm" class="q-mr-sm" />
+                <div>
+                  <div class="text-weight-medium">Address</div>
+                  <div class="text-caption text-grey-7">
+                    123 Business Street<br>
+                    Suite 100<br>
+                    City, State 12345
+                  </div>
+                </div>
+              </div>
+
+              <div class="contact-item q-mb-md">
+                <q-icon name="phone" color="primary" size="sm" class="q-mr-sm" />
+                <div>
+                  <div class="text-weight-medium">Phone</div>
+                  <div class="text-caption text-grey-7">+1 (555) 123-4567</div>
+                </div>
+              </div>
+
+              <div class="contact-item q-mb-md">
+                <q-icon name="email" color="primary" size="sm" class="q-mr-sm" />
+                <div>
+                  <div class="text-weight-medium">Email</div>
+                  <div class="text-caption text-grey-7">hello@company.com</div>
+                </div>
+              </div>
+
+              <div class="contact-item q-mb-lg">
+                <q-icon name="schedule" color="primary" size="sm" class="q-mr-sm" />
+                <div>
+                  <div class="text-weight-medium">Business Hours</div>
+                  <div class="text-caption text-grey-7">
+                    Mon - Fri: 9:00 AM - 6:00 PM<br>
+                    Saturday: 10:00 AM - 4:00 PM<br>
+                    Sunday: Closed
+                  </div>
+                </div>
+              </div>
+
+              <!-- Social Media Links -->
+              <div class="text-center">
+                <div class="text-subtitle2 q-mb-sm">Follow Us</div>
+                <q-btn
+                  flat
+                  round
+                  color="primary"
+                  icon="fab fa-facebook"
+                  class="q-ma-xs"
+                  @click="openSocialLink('facebook')"
+                />
+                <q-btn
+                  flat
+                  round
+                  color="primary"
+                  icon="fab fa-twitter"
+                  class="q-ma-xs"
+                  @click="openSocialLink('twitter')"
+                />
+                <q-btn
+                  flat
+                  round
+                  color="primary"
+                  icon="fab fa-linkedin"
+                  class="q-ma-xs"
+                  @click="openSocialLink('linkedin')"
+                />
               </div>
             </q-card-section>
-            <q-card-actions align="center">
-              <q-btn label="Close" color="primary" @click="closeSuccessDialog" />
-            </q-card-actions>
           </q-card>
-        </q-dialog>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+
+          <!-- FAQ Quick Links -->
+          <q-card flat bordered class="q-mt-md">
+            <q-card-section class="q-pa-lg">
+              <div class="text-h6 q-mb-md">Quick Help</div>
+              <q-list>
+                <q-item clickable v-ripple @click="openFAQ">
+                  <q-item-section avatar>
+                    <q-icon name="help_outline" color="primary" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Frequently Asked Questions</q-item-label>
+                    <q-item-label caption>Find quick answers</q-item-label>
+                  </q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple @click="openSupport">
+                  <q-item-section avatar>
+                    <q-icon name="support_agent" color="primary" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Live Support</q-item-label>
+                    <q-item-label caption>Chat with our team</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success/Error Notifications -->
+    <q-dialog v-model="showSuccessDialog" persistent>
+      <q-card style="min-width: 350px">
+        <q-card-section class="text-center q-pa-lg">
+          <q-avatar size="80px" color="positive" text-color="white" class="q-mb-md">
+            <q-icon name="check_circle" size="50px" />
+          </q-avatar>
+          <div class="text-h6 q-mb-sm">Message Sent Successfully!</div>
+          <div class="text-body2 text-grey-7">
+            Thank you, {{ submittedName }}! We've received your message and will get back to you within 24 hours.
+          </div>
+        </q-card-section>
+        <q-card-actions align="center">
+          <q-btn label="Close" color="primary" @click="closeSuccessDialog" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </q-page>
 </template>
 
 <script setup lang='ts'>

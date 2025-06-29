@@ -1,5 +1,4 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
     <!-- Loading Overlay -->
     <q-inner-loading :showing="isLoading" color="primary">
       <q-spinner-dots size="50px" />
@@ -8,10 +7,10 @@
     <!-- Top Bar -->
     <q-header elevated class="bg-white text-black shadow-2">
       <q-toolbar>
-        <q-btn 
-          flat 
-          round 
-          icon="menu" 
+        <q-btn
+          flat
+          round
+          icon="menu"
           @click="toggleDrawer"
           :aria-label="$t('navigation.menu')"
           data-testid="menu-button"
@@ -19,40 +18,40 @@
         <q-toolbar-title class="text-weight-bold cursor-pointer" @click="navigateToHome">
           {{ appConfig.name }}
         </q-toolbar-title>
-        
+
         <q-space />
-        
+
         <!-- Search -->
-        <q-btn 
-          flat 
-          round 
-          icon="search" 
+        <q-btn
+          flat
+          round
+          icon="search"
           @click="openSearch"
           :aria-label="$t('actions.search')"
           data-testid="search-button"
         />
-        
+
         <!-- Notifications -->
-        <q-btn 
-          flat 
-          round 
+        <q-btn
+          flat
+          round
           icon="notifications"
           @click="openNotifications"
           :aria-label="$t('navigation.notifications')"
           data-testid="notifications-button"
         >
-          <q-badge 
-            v-if="unreadNotifications > 0" 
-            color="red" 
+          <q-badge
+            v-if="unreadNotifications > 0"
+            color="red"
             floating
             :label="unreadNotifications > 99 ? '99+' : unreadNotifications"
           />
         </q-btn>
-        
+
         <!-- Profile -->
-        <q-btn-dropdown 
-          flat 
-          round 
+        <q-btn-dropdown
+          flat
+          round
           icon="person"
           :aria-label="$t('navigation.profile')"
           data-testid="profile-dropdown"
@@ -83,10 +82,10 @@
     </q-header>
 
     <!-- Drawer -->
-    <q-drawer 
-      v-model="drawer" 
-      side="left" 
-      bordered 
+    <q-drawer
+      v-model="drawer"
+      side="left"
+      bordered
       :width="280"
       :breakpoint="1024"
       show-if-above
@@ -95,10 +94,10 @@
       <q-scroll-area class="fit">
         <q-list>
           <!-- Navigation Items -->
-          <q-item 
-            v-for="item in navigationItems" 
+          <q-item
+            v-for="item in navigationItems"
             :key="item.name"
-            clickable 
+            clickable
             v-ripple
             :active="currentRoute === item.route"
             active-class="bg-primary text-white"
@@ -115,14 +114,14 @@
               <q-badge :color="item.badgeColor" :label="item.badge" />
             </q-item-section>
           </q-item>
-          
+
           <q-separator class="q-my-md" />
-          
+
           <!-- Quick Actions -->
           <q-item-label header class="text-grey-8">
             {{ $t('navigation.quickActions') }}
           </q-item-label>
-          
+
           <q-item clickable v-ripple @click="createContent">
             <q-item-section avatar>
               <q-icon name="add_circle" color="positive" />
@@ -133,16 +132,14 @@
       </q-scroll-area>
     </q-drawer>
 
-    <!-- Main Content -->
-    <q-page-container>
       <q-page class="q-pa-md">
         <!-- Error State -->
         <div v-if="error" class="text-center q-pa-xl">
           <q-icon name="error_outline" size="80px" color="negative" class="q-mb-md" />
           <div class="text-h6 q-mb-md">{{ $t('errors.loadingFailed') }}</div>
           <div class="text-body2 text-grey-7 q-mb-md">{{ error }}</div>
-          <q-btn 
-            color="primary" 
+          <q-btn
+            color="primary"
             @click="retryLoading"
             :loading="isRetrying"
             :label="$t('actions.retry')"
@@ -157,9 +154,9 @@
               <q-card-section class="q-pa-xl text-center">
                 <div class="text-h4 q-mb-md">{{ $t('home.welcome') }}</div>
                 <div class="text-h6 q-mb-lg">{{ $t('home.subtitle') }}</div>
-                <q-btn 
-                  color="white" 
-                  text-color="primary" 
+                <q-btn
+                  color="white"
+                  text-color="primary"
                   :label="$t('actions.getStarted')"
                   @click="navigateToExplore"
                   size="lg"
@@ -175,22 +172,22 @@
               <div class="text-h5 text-weight-bold">{{ $t('sections.explore') }}</div>
               <div class="text-subtitle1 text-grey-7">{{ $t('sections.exploreDescription') }}</div>
             </div>
-            
+
             <div class="row q-col-gutter-lg">
-              <div 
-                v-for="(item, index) in exploreItems" 
+              <div
+                v-for="(item, index) in exploreItems"
                 :key="item.id"
                 class="col-12 col-sm-6 col-md-4 col-lg-3"
               >
-                <q-card 
+                <q-card
                   class="explore-card cursor-pointer"
                   @click="openContent(item)"
                   :data-testid="`explore-item-${index}`"
                   v-intersection="onIntersection"
                 >
                   <div class="card-image-container">
-                    <q-img 
-                      :src="item.image" 
+                    <q-img
+                      :src="item.image"
                       :alt="item.title"
                       :ratio="16/9"
                       class="rounded-borders-top"
@@ -206,17 +203,17 @@
                         </div>
                       </template>
                     </q-img>
-                    
+
                     <!-- Content Type Badge -->
-                    <q-badge 
-                      :color="getTypeColor(item.type)" 
+                    <q-badge
+                      :color="getTypeColor(item.type)"
                       :label="item.type"
                       class="absolute-top-right q-ma-sm"
                     />
-                    
+
                     <!-- Bookmark Button -->
-                    <q-btn 
-                      round 
+                    <q-btn
+                      round
                       :icon="item.bookmarked ? 'bookmark' : 'bookmark_border'"
                       :color="item.bookmarked ? 'yellow-8' : 'white'"
                       class="absolute-bottom-right q-ma-sm"
@@ -224,13 +221,13 @@
                       :loading="item.bookmarkLoading"
                     />
                   </div>
-                  
+
                   <q-card-section class="q-pa-md">
                     <div class="text-h6 ellipsis-2-lines q-mb-xs">{{ item.title }}</div>
                     <div class="text-body2 text-grey-7 ellipsis-2-lines q-mb-sm">
                       {{ item.description }}
                     </div>
-                    
+
                     <div class="row items-center justify-between">
                       <div class="text-caption text-grey-6">
                         <q-icon name="schedule" size="16px" class="q-mr-xs" />
@@ -245,10 +242,10 @@
                 </q-card>
               </div>
             </div>
-            
+
             <!-- Load More -->
             <div class="text-center q-mt-lg" v-if="hasMoreExploreItems">
-              <q-btn 
+              <q-btn
                 :label="$t('actions.loadMore')"
                 @click="loadMoreExploreItems"
                 :loading="loadingMoreExplore"
@@ -264,10 +261,10 @@
               <div class="text-h5 text-weight-bold">{{ $t('sections.topics') }}</div>
               <div class="text-subtitle1 text-grey-7">{{ $t('sections.topicsDescription') }}</div>
             </div>
-            
+
             <div class="topics-grid">
-              <q-chip 
-                v-for="topic in topics" 
+              <q-chip
+                v-for="topic in topics"
                 :key="topic.id"
                 clickable
                 :color="selectedTopics.includes(topic.id) ? 'primary' : 'grey-3'"
@@ -278,8 +275,8 @@
               >
                 <q-icon :name="topic.icon" left />
                 {{ topic.name }}
-                <q-badge 
-                  v-if="topic.count" 
+                <q-badge
+                  v-if="topic.count"
                   :color="selectedTopics.includes(topic.id) ? 'white' : 'primary'"
                   :text-color="selectedTopics.includes(topic.id) ? 'primary' : 'white'"
                   :label="formatNumber(topic.count)"
@@ -295,20 +292,20 @@
               <div class="text-h5 text-weight-bold">{{ $t('sections.collections') }}</div>
               <div class="text-subtitle1 text-grey-7">{{ $t('sections.collectionsDescription') }}</div>
             </div>
-            
+
             <div class="row q-col-gutter-md">
-              <div 
-                v-for="collection in collections" 
+              <div
+                v-for="collection in collections"
                 :key="collection.id"
                 class="col-12 col-sm-6 col-md-4 col-lg-3"
               >
-                <q-card 
+                <q-card
                   class="collection-card cursor-pointer"
                   @click="openCollection(collection)"
                   :data-testid="`collection-${collection.id}`"
                 >
-                  <q-img 
-                    :src="collection.thumbnail" 
+                  <q-img
+                    :src="collection.thumbnail"
                     :alt="collection.title"
                     :ratio="1"
                     class="rounded-borders-top"
@@ -330,13 +327,12 @@
           </section>
         </div>
       </q-page>
-    </q-page-container>
 
     <!-- Search Dialog -->
     <q-dialog v-model="searchDialog" position="top">
       <q-card class="search-card">
         <q-card-section class="q-pa-none">
-          <q-input 
+          <q-input
             v-model="searchQuery"
             :placeholder="$t('search.placeholder')"
             autofocus
@@ -348,22 +344,22 @@
               <q-icon name="search" />
             </template>
             <template v-slot:append>
-              <q-btn 
-                flat 
-                round 
-                icon="close" 
+              <q-btn
+                flat
+                round
+                icon="close"
                 @click="searchDialog = false"
                 :aria-label="$t('actions.close')"
               />
             </template>
           </q-input>
         </q-card-section>
-        
+
         <!-- Search Results -->
         <q-card-section v-if="searchResults.length > 0" class="q-pt-none">
           <q-list>
-            <q-item 
-              v-for="result in searchResults" 
+            <q-item
+              v-for="result in searchResults"
               :key="result.id"
               clickable
               @click="selectSearchResult(result)"
@@ -382,11 +378,10 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-  </q-layout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useQuasar, date } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -443,9 +438,9 @@ const exploreItems = ref([
   },
   {
     id: 2,
-    title: 'Devotional Music Collection',
-    description: 'Uplifting songs to inspire your daily spiritual journey.',
-    type: 'Music',
+    title: 'Devotional Audio Collection',
+    description: 'Uplifting audio tracks to inspire your daily spiritual journey.',
+    type: 'Audio',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
     createdAt: new Date('2024-06-09'),
     views: 890,
@@ -464,13 +459,26 @@ const exploreItems = ref([
     bookmarkLoading: false
   },
   {
-    id: 4,
+    id: 3,
     title: 'Faith & Healing Stories',
     description: 'Testimonies of transformation and divine intervention.',
     type: 'Book',
     image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop',
     createdAt: new Date('2024-06-07'),
     views: 1750,
+    bookmarked: false,
+    bookmarkLoading: false
+  },
+  {
+    id: 5, // Unique identifier for the video (changed from 4 to 1, but you can assign as needed)
+    title: 'Faith & Healing Stories: A Visual Journey', // Made it more video-specific
+    description: 'Powerful testimonies of transformation and divine intervention, brought to life through personal narratives and inspiring visuals.', // Expanded for video context
+    type: 'Video', // Changed from 'Book' to 'Video'
+    thumbnail: 'https://images.unsplash.com/photo-1517486804812-70b74ce1506b?w=400&h=300&fit=crop', // Replaced 'image' with 'thumbnail', and used a more video-like image URL
+    createdAt: new Date('2024-06-20'), // Adjusted creation date (you can set this to when the video was uploaded/created)
+    views: 2500, // Adjusted views (videos often have higher view counts)
+    duration: '12:35', // New field: video duration (e.g., 12 minutes, 35 seconds)
+    category: 'Inspirational', // New field: video category
     bookmarked: false,
     bookmarkLoading: false
   }
@@ -522,7 +530,7 @@ watch(searchQuery, (newQuery) => {
 })
 
 // Computed properties
-const currentUser = computed(() => {
+/*const currentUser = computed(() => {
   // In production, this would come from auth store
   return {
     id: 1,
@@ -530,7 +538,7 @@ const currentUser = computed(() => {
     email: 'john@example.com',
     avatar: 'https://via.placeholder.com/40'
   }
-})
+})*/
 
 // Methods
 const toggleDrawer = () => {
@@ -579,7 +587,7 @@ const handleLogout = async () => {
 }
 
 const openContent = (item) => {
-  router.push(`/content/${item.id}`)
+  router.push(`/${item.type.toLowerCase()}/${item.id}`)
 }
 
 const openCollection = (collection) => {
@@ -592,7 +600,7 @@ const toggleBookmark = async (item) => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))
     item.bookmarked = !item.bookmarked
-    
+
     $q.notify({
       message: item.bookmarked ? t('actions.bookmarked') : t('actions.unbookmarked'),
       type: 'positive',
@@ -643,7 +651,7 @@ const performSearch = async (query) => {
     searchResults.value = []
     return
   }
-  
+
   try {
     // Simulate API search
     await new Promise(resolve => setTimeout(resolve, 300))
@@ -717,7 +725,7 @@ const formatNumber = (num) => {
 const getTypeColor = (type) => {
   const colors = {
     'Video': 'red',
-    'Music': 'purple',
+    'Audio': 'purple',
     'Quote': 'orange',
     'Book': 'blue',
     'Article': 'green'
@@ -884,12 +892,12 @@ const $t = (key) => {
   .hero-card {
     min-height: 200px;
   }
-  
+
   .section-header {
     text-align: left;
     margin-bottom: 1.5rem;
   }
-  
+
   .topics-grid {
     justify-content: flex-start;
   }

@@ -1,307 +1,303 @@
 <template>
-  <q-layout>
-    <q-page-container>
-      <q-page class="terms-page">
-        <!-- Hero Header -->
-        <div class="hero-header">
-          <div class="hero-content">
-            <q-icon name="gavel" size="4rem" class="text-white q-mb-md" />
-            <div class="text-h2 text-white text-weight-bold q-mb-sm">Terms of Service</div>
-            <div class="text-h5 text-white q-mb-lg opacity-90">Edifeeds - Christian Content Platform</div>
-            <q-chip
-              color="white"
-              text-color="primary"
-              class="q-px-lg q-py-sm"
-              icon="schedule"
-              size="lg"
-            >
-              <span class="text-weight-medium">Effective Date: January 1, 2024</span>
-            </q-chip>
-          </div>
-          <div class="hero-overlay"></div>
+  <q-page class="terms-page">
+    <!-- Hero Header -->
+    <div class="hero-header">
+      <div class="hero-content">
+        <q-icon name="gavel" size="4rem" class="text-white q-mb-md" />
+        <div class="text-h2 text-white text-weight-bold q-mb-sm">Terms of Service</div>
+        <div class="text-h5 text-white q-mb-lg opacity-90">Edifeeds - Christian Content Platform</div>
+        <q-chip
+          color="white"
+          text-color="primary"
+          class="q-px-lg q-py-sm"
+          icon="schedule"
+          size="lg"
+        >
+          <span class="text-weight-medium">Effective Date: January 1, 2024</span>
+        </q-chip>
+      </div>
+      <div class="hero-overlay"></div>
+    </div>
+
+    <!-- Introduction Card -->
+    <div class="container q-px-md q-py-xl">
+      <q-card flat bordered class="intro-card q-pa-lg q-mb-xl">
+        <div class="text-center">
+          <q-icon name="info" color="primary" size="2rem" class="q-mb-md" />
+          <div class="text-h6 text-primary q-mb-md">Welcome to Edifeeds</div>
+          <p class="text-body1 text-grey-8 q-mb-lg">
+            These Terms of Service govern your access to and use of our Christian content platform.
+            By using Edifeeds, you agree to be bound by these Terms and our
+            <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>.
+          </p>
+          <q-banner inline-actions class="bg-orange-1 text-orange-8 rounded-borders">
+            <template v-slot:avatar>
+              <q-icon name="warning" color="orange" />
+            </template>
+            <strong>Important:</strong> If you do not agree with these Terms, please do not use our Service.
+          </q-banner>
         </div>
+      </q-card>
 
-        <!-- Introduction Card -->
-        <div class="container q-px-md q-py-xl">
-          <q-card flat bordered class="intro-card q-pa-lg q-mb-xl">
-            <div class="text-center">
-              <q-icon name="info" color="primary" size="2rem" class="q-mb-md" />
-              <div class="text-h6 text-primary q-mb-md">Welcome to Edifeeds</div>
-              <p class="text-body1 text-grey-8 q-mb-lg">
-                These Terms of Service govern your access to and use of our Christian content platform.
-                By using Edifeeds, you agree to be bound by these Terms and our
-                <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>.
-              </p>
-              <q-banner inline-actions class="bg-orange-1 text-orange-8 rounded-borders">
-                <template v-slot:avatar>
-                  <q-icon name="warning" color="orange" />
-                </template>
-                <strong>Important:</strong> If you do not agree with these Terms, please do not use our Service.
-              </q-banner>
-            </div>
-          </q-card>
-
-          <!-- Navigation Tabs -->
-          <q-card flat bordered class="q-mb-xl">
-            <q-tabs
-              v-model="activeTab"
-              class="tabs-container"
-              active-color="primary"
-              indicator-color="primary"
-              align="justify"
-              mobile-arrows
-              outside-arrows
-              @update:model-value="onTabChange"
-            >
-              <q-tab
-                v-for="(section, index) in sections"
-                :key="section.id"
-                :name="section.id"
-                :icon="section.icon"
-                class="tab-item"
-              >
-                <div class="tab-content">
-                  <div class="section-badge">{{ index + 1 }}</div>
-                  <div class="tab-label">{{ section.label }}</div>
-                </div>
-              </q-tab>
-            </q-tabs>
-          </q-card>
-
-          <!-- Main Content Layout -->
-          <div class="row q-col-gutter-xl">
-            <!-- Sidebar Navigation -->
-            <div class="col-12 col-lg-3">
-              <q-card flat bordered class="sidebar-card">
-                <q-card-section class="q-pb-none">
-                  <div class="text-h6 text-primary q-mb-md flex items-center">
-                    <q-icon name="format_list_bulleted" class="q-mr-sm" />
-                    Quick Navigation
-                  </div>
-                </q-card-section>
-
-                <q-separator class="q-mb-md" />
-
-                <q-card-section class="q-pt-none">
-                  <q-list dense class="sidebar-nav">
-                    <q-item
-                      v-for="(section, index) in sections"
-                      :key="section.id"
-                      :active="activeTab === section.id"
-                      active-class="sidebar-active"
-                      clickable
-                      v-ripple
-                      @click="navigateToSection(section.id)"
-                      class="sidebar-item rounded-borders q-mb-xs"
-                    >
-                      <q-item-section avatar>
-                        <div class="sidebar-number">{{ index + 1 }}</div>
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="text-weight-medium">{{ section.label }}</q-item-label>
-                      </q-item-section>
-                      <q-item-section side>
-                        <q-icon name="chevron_right" size="sm" />
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-card-section>
-
-                <!-- Progress Indicator -->
-                <q-card-section class="q-pt-none">
-                  <q-separator class="q-mb-md" />
-                  <div class="text-caption text-grey-6 q-mb-sm">Reading Progress</div>
-                  <q-linear-progress
-                    :value="readingProgress"
-                    color="primary"
-                    class="q-mb-sm"
-                    size="8px"
-                    rounded
-                  />
-                  <div class="text-caption text-grey-6">
-                    {{ Math.round(readingProgress * 100) }}% Complete
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <!-- Main Content Area -->
-            <div class="col-12 col-lg-9">
-              <q-card flat bordered class="content-card">
-                <q-card-section class="q-pa-xl">
-                  <transition
-                    name="fade-slide"
-                    mode="out-in"
-                    @enter="onEnter"
-                    @leave="onLeave"
-                  >
-                    <div :key="activeTab" class="section-content">
-                      <!-- Section Header -->
-                      <div class="section-header q-mb-lg">
-                        <div class="flex items-center q-mb-md">
-                          <div class="section-number-large q-mr-md">
-                            {{ getCurrentSectionIndex() + 1 }}
-                          </div>
-                          <div>
-                            <div class="text-h4 text-primary text-weight-bold">
-                              {{ getCurrentSection()?.label }}
-                            </div>
-                            <div class="text-caption text-grey-6">
-                              Section {{ getCurrentSectionIndex() + 1 }} of {{ sections.length }}
-                            </div>
-                          </div>
-                        </div>
-                        <q-separator />
-                      </div>
-
-                      <!-- Section Content -->
-                      <div
-                        class="section-body text-body1 line-height-relaxed"
-                        v-html="getCurrentSection()?.content"
-                      ></div>
-
-                      <!-- Section Navigation -->
-                      <div class="section-navigation q-mt-xl q-pt-lg">
-                        <q-separator class="q-mb-lg" />
-                        <div class="row justify-between items-center">
-                          <q-btn
-                            v-if="getCurrentSectionIndex() > 0"
-                            @click="navigateToPrevious"
-                            color="grey-6"
-                            outline
-                            icon="chevron_left"
-                            label="Previous"
-                            class="nav-btn"
-                          />
-                          <div v-else></div>
-
-                          <div class="text-center">
-                            <q-btn
-                              @click="scrollToTop"
-                              color="primary"
-                              outline
-                              icon="keyboard_arrow_up"
-                              label="Back to Top"
-                              size="sm"
-                            />
-                          </div>
-
-                          <q-btn
-                            v-if="getCurrentSectionIndex() < sections.length - 1"
-                            @click="navigateToNext"
-                            color="primary"
-                            icon-right="chevron_right"
-                            label="Next"
-                            class="nav-btn"
-                          />
-                          <div v-else></div>
-                        </div>
-                      </div>
-                    </div>
-                  </transition>
-                </q-card-section>
-              </q-card>
-            </div>
-          </div>
-
-          <!-- Contact Section -->
-          <q-card flat bordered class="contact-card q-mt-xl">
-            <q-card-section class="q-pa-xl">
-              <div class="text-center q-mb-lg">
-                <q-icon name="support_agent" size="3rem" color="primary" class="q-mb-md" />
-                <div class="text-h5 text-primary text-weight-bold q-mb-sm">Get in Touch</div>
-                <div class="text-body1 text-grey-7">
-                  Have questions about our Terms of Service? We're here to help.
-                </div>
-              </div>
-
-              <div class="row q-col-gutter-lg">
-                <div class="col-12 col-md-4" v-for="contact in contactInfo" :key="contact.type">
-                  <q-card flat class="contact-item text-center q-pa-lg">
-                    <q-icon :name="contact.icon" size="2rem" :color="contact.color" class="q-mb-md" />
-                    <div class="text-subtitle2 text-weight-bold q-mb-sm">{{ contact.label }}</div>
-                    <div class="text-body2">
-                      <a
-                        v-if="contact.link"
-                        :href="contact.link"
-                        class="text-primary text-decoration-none"
-                      >
-                        {{ contact.value }}
-                      </a>
-                      <span v-else>{{ contact.value }}</span>
-                    </div>
-                  </q-card>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Footer -->
-        <footer class="footer-section">
-          <div class="container q-px-md">
-            <div class="text-center text-white">
-              <q-icon name="favorite" color="red" class="q-mr-sm" />
-              <span>&copy; 2024 Edifeeds. All rights reserved. | Built with Quasar Framework</span>
-            </div>
-          </div>
-        </footer>
-
-        <!-- Floating Action Button -->
-        <q-page-sticky position="bottom-right" :offset="[18, 18]">
-          <q-btn
-            fab
-            icon="help_outline"
-            color="secondary"
-            @click="showHelp = true"
-            class="floating-help-btn"
+      <!-- Navigation Tabs -->
+      <q-card flat bordered class="q-mb-xl">
+        <q-tabs
+          v-model="activeTab"
+          class="tabs-container"
+          active-color="primary"
+          indicator-color="primary"
+          align="justify"
+          mobile-arrows
+          outside-arrows
+          @update:model-value="onTabChange"
+        >
+          <q-tab
+            v-for="(section, index) in sections"
+            :key="section.id"
+            :name="section.id"
+            :icon="section.icon"
+            class="tab-item"
           >
-            <q-tooltip class="bg-secondary">Need Help?</q-tooltip>
-          </q-btn>
-        </q-page-sticky>
+            <div class="tab-content">
+              <div class="section-badge">{{ index + 1 }}</div>
+              <div class="tab-label">{{ section.label }}</div>
+            </div>
+          </q-tab>
+        </q-tabs>
+      </q-card>
 
-        <!-- Help Dialog -->
-        <q-dialog v-model="showHelp">
-          <q-card style="min-width: 400px">
-            <q-card-section class="row items-center q-pb-none">
-              <div class="text-h6">How to Navigate</div>
-              <q-space />
-              <q-btn icon="close" flat round dense @click="showHelp = false" />
+      <!-- Main Content Layout -->
+      <div class="row q-col-gutter-xl">
+        <!-- Sidebar Navigation -->
+        <div class="col-12 col-lg-3">
+          <q-card flat bordered class="sidebar-card">
+            <q-card-section class="q-pb-none">
+              <div class="text-h6 text-primary q-mb-md flex items-center">
+                <q-icon name="format_list_bulleted" class="q-mr-sm" />
+                Quick Navigation
+              </div>
             </q-card-section>
 
-            <q-card-section>
-              <q-list>
-                <q-item>
+            <q-separator class="q-mb-md" />
+
+            <q-card-section class="q-pt-none">
+              <q-list dense class="sidebar-nav">
+                <q-item
+                  v-for="(section, index) in sections"
+                  :key="section.id"
+                  :active="activeTab === section.id"
+                  active-class="sidebar-active"
+                  clickable
+                  v-ripple
+                  @click="navigateToSection(section.id)"
+                  class="sidebar-item rounded-borders q-mb-xs"
+                >
                   <q-item-section avatar>
-                    <q-icon name="tab" color="primary" />
+                    <div class="sidebar-number">{{ index + 1 }}</div>
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Use tabs to jump between sections</q-item-label>
+                    <q-item-label class="text-weight-medium">{{ section.label }}</q-item-label>
                   </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar>
-                    <q-icon name="list" color="primary" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>Click sidebar items for quick navigation</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar>
-                    <q-icon name="navigation" color="primary" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>Use Previous/Next buttons at section bottom</q-item-label>
+                  <q-item-section side>
+                    <q-icon name="chevron_right" size="sm" />
                   </q-item-section>
                 </q-item>
               </q-list>
             </q-card-section>
+
+            <!-- Progress Indicator -->
+            <q-card-section class="q-pt-none">
+              <q-separator class="q-mb-md" />
+              <div class="text-caption text-grey-6 q-mb-sm">Reading Progress</div>
+              <q-linear-progress
+                :value="readingProgress"
+                color="primary"
+                class="q-mb-sm"
+                size="8px"
+                rounded
+              />
+              <div class="text-caption text-grey-6">
+                {{ Math.round(readingProgress * 100) }}% Complete
+              </div>
+            </q-card-section>
           </q-card>
-        </q-dialog>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-12 col-lg-9">
+          <q-card flat bordered class="content-card">
+            <q-card-section class="q-pa-xl">
+              <transition
+                name="fade-slide"
+                mode="out-in"
+                @enter="onEnter"
+                @leave="onLeave"
+              >
+                <div :key="activeTab" class="section-content">
+                  <!-- Section Header -->
+                  <div class="section-header q-mb-lg">
+                    <div class="flex items-center q-mb-md">
+                      <div class="section-number-large q-mr-md">
+                        {{ getCurrentSectionIndex() + 1 }}
+                      </div>
+                      <div>
+                        <div class="text-h4 text-primary text-weight-bold">
+                          {{ getCurrentSection()?.label }}
+                        </div>
+                        <div class="text-caption text-grey-6">
+                          Section {{ getCurrentSectionIndex() + 1 }} of {{ sections.length }}
+                        </div>
+                      </div>
+                    </div>
+                    <q-separator />
+                  </div>
+
+                  <!-- Section Content -->
+                  <div
+                    class="section-body text-body1 line-height-relaxed"
+                    v-html="getCurrentSection()?.content"
+                  ></div>
+
+                  <!-- Section Navigation -->
+                  <div class="section-navigation q-mt-xl q-pt-lg">
+                    <q-separator class="q-mb-lg" />
+                    <div class="row justify-between items-center">
+                      <q-btn
+                        v-if="getCurrentSectionIndex() > 0"
+                        @click="navigateToPrevious"
+                        color="grey-6"
+                        outline
+                        icon="chevron_left"
+                        label="Previous"
+                        class="nav-btn"
+                      />
+                      <div v-else></div>
+
+                      <div class="text-center">
+                        <q-btn
+                          @click="scrollToTop"
+                          color="primary"
+                          outline
+                          icon="keyboard_arrow_up"
+                          label="Back to Top"
+                          size="sm"
+                        />
+                      </div>
+
+                      <q-btn
+                        v-if="getCurrentSectionIndex() < sections.length - 1"
+                        @click="navigateToNext"
+                        color="primary"
+                        icon-right="chevron_right"
+                        label="Next"
+                        class="nav-btn"
+                      />
+                      <div v-else></div>
+                    </div>
+                  </div>
+                </div>
+              </transition>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- Contact Section -->
+      <q-card flat bordered class="contact-card q-mt-xl">
+        <q-card-section class="q-pa-xl">
+          <div class="text-center q-mb-lg">
+            <q-icon name="support_agent" size="3rem" color="primary" class="q-mb-md" />
+            <div class="text-h5 text-primary text-weight-bold q-mb-sm">Get in Touch</div>
+            <div class="text-body1 text-grey-7">
+              Have questions about our Terms of Service? We're here to help.
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-lg">
+            <div class="col-12 col-md-4" v-for="contact in contactInfo" :key="contact.type">
+              <q-card flat class="contact-item text-center q-pa-lg">
+                <q-icon :name="contact.icon" size="2rem" :color="contact.color" class="q-mb-md" />
+                <div class="text-subtitle2 text-weight-bold q-mb-sm">{{ contact.label }}</div>
+                <div class="text-body2">
+                  <a
+                    v-if="contact.link"
+                    :href="contact.link"
+                    class="text-primary text-decoration-none"
+                  >
+                    {{ contact.value }}
+                  </a>
+                  <span v-else>{{ contact.value }}</span>
+                </div>
+              </q-card>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+      <div class="container q-px-md">
+        <div class="text-center text-white">
+          <q-icon name="favorite" color="red" class="q-mr-sm" />
+          <span>&copy; 2024 Edifeeds. All rights reserved. | Built with Quasar Framework</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Floating Action Button -->
+    <q-page-sticky position="bottom-right" :offset="[18, 18]">
+      <q-btn
+        fab
+        icon="help_outline"
+        color="secondary"
+        @click="showHelp = true"
+        class="floating-help-btn"
+      >
+        <q-tooltip class="bg-secondary">Need Help?</q-tooltip>
+      </q-btn>
+    </q-page-sticky>
+
+    <!-- Help Dialog -->
+    <q-dialog v-model="showHelp">
+      <q-card style="min-width: 400px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">How to Navigate</div>
+          <q-space />
+          <q-btn icon="close" flat round dense @click="showHelp = false" />
+        </q-card-section>
+
+        <q-card-section>
+          <q-list>
+            <q-item>
+              <q-item-section avatar>
+                <q-icon name="tab" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Use tabs to jump between sections</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar>
+                <q-icon name="list" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Click sidebar items for quick navigation</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar>
+                <q-icon name="navigation" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Use Previous/Next buttons at section bottom</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+  </q-page>
 </template>
 
 <script>

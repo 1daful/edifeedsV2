@@ -340,10 +340,12 @@
   </q-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
+defineOptions({ name: 'BookPage' })
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import { sampleBooks } from '../utils/sampleData'
 //import CommentSection from '@/components/CommentSection.vue'
 //import RelatedContent from '@/components/RelatedContent.vue'
 
@@ -398,8 +400,7 @@ const shareUrl = computed(() => {
   return `${window.location.origin}/book/${book.id}`
 })
 
-// Methods
-const fetchBookDetails = async () => {
+/*const fetchBookDetails = async () => {
   loading.value = true
   error.value = null
 
@@ -421,9 +422,29 @@ const fetchBookDetails = async () => {
   } finally {
     loading.value = false
   }
+}*/
+
+const fetchBookDetails = async () => {
+  loading.value = true
+  error.value = null
+
+  try {
+    const bookData = sampleBooks.find(b => b.id === route.params.id)
+
+    if (!bookData) {
+      throw new Error('Book not found')
+    }
+
+    Object.assign(book, bookData)
+    userRating.value = bookData.averageRating || 0
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'An error occurred while loading the book'
+  } finally {
+    loading.value = false
+  }
 }
 
-const rateBook = async (rating) => {
+/*const rateBook = async (rating) => {
   if (ratingLoading.value) return
 
   ratingLoading.value = true
@@ -447,14 +468,38 @@ const rateBook = async (rating) => {
   } catch (err) {
     $q.notify({
       type: 'negative',
-      message: 'Failed to submit rating'
+      message: 'Failed to submit rating: ' + (err || 'Unknown error')
+    })
+  } finally {
+    ratingLoading.value = false
+  }
+}*/
+
+const rateBook = async (rating: number) => {
+  if (ratingLoading.value) return
+
+  ratingLoading.value = true
+  try {
+    // Simulate recalculating averageRating (for dev only)
+    book.averageRating = rating
+    book.ratingsCount += 1
+    userRating.value = rating
+
+    $q.notify({
+      type: 'positive',
+      message: 'Rating submitted successfully (mock)'
+    })
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to submit rating (mock)'
     })
   } finally {
     ratingLoading.value = false
   }
 }
 
-const toggleBookmark = async () => {
+/*const toggleBookmark = async () => {
   if (bookmarkLoading.value) return
 
   bookmarkLoading.value = true
@@ -473,14 +518,35 @@ const toggleBookmark = async () => {
   } catch (err) {
     $q.notify({
       type: 'negative',
-      message: 'Failed to update bookmark'
+      message: 'Failed to update bookmark' + (err || 'Unknown error')
+    })
+  } finally {
+    bookmarkLoading.value = false
+  }
+}*/
+
+const toggleBookmark = async () => {
+  if (bookmarkLoading.value) return
+
+  bookmarkLoading.value = true
+  try {
+    book.bookmarked = !book.bookmarked
+
+    $q.notify({
+      type: 'positive',
+      message: book.bookmarked ? 'Book bookmarked (mock)' : 'Bookmark removed (mock)'
+    })
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to update bookmark (mock)'
     })
   } finally {
     bookmarkLoading.value = false
   }
 }
 
-const toggleLibrary = async () => {
+/*const toggleLibrary = async () => {
   if (libraryLoading.value) return
 
   libraryLoading.value = true
@@ -499,7 +565,28 @@ const toggleLibrary = async () => {
   } catch (err) {
     $q.notify({
       type: 'negative',
-      message: 'Failed to update library'
+      message: 'Failed to update library' + (err || 'Unknown error')
+    })
+  } finally {
+    libraryLoading.value = false
+  }
+}*/
+
+const toggleLibrary = async () => {
+  if (libraryLoading.value) return
+
+  libraryLoading.value = true
+  try {
+    book.inLibrary = !book.inLibrary
+
+    $q.notify({
+      type: 'positive',
+      message: book.inLibrary ? 'Added to library (mock)' : 'Removed from library (mock)'
+    })
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to update library (mock)'
     })
   } finally {
     libraryLoading.value = false
@@ -523,7 +610,7 @@ const copyToClipboard = async (text) => {
   } catch (err) {
     $q.notify({
       type: 'negative',
-      message: 'Failed to copy URL'
+      message: 'Failed to copy URL' + (err || 'Unknown error')
     })
   }
 }
@@ -543,7 +630,7 @@ const downloadBook = async () => {
   } catch (err) {
     $q.notify({
       type: 'negative',
-      message: 'Failed to download book'
+      message: 'Failed to download book' + (err || 'Unknown error')
     })
   }
 }
@@ -621,6 +708,7 @@ watch(() => route.params.id, () => {
 .description-collapsed {
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
