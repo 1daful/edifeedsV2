@@ -37,162 +37,16 @@
     <!-- Main Content -->
     <div class="main-content">
       <!-- Browse Topics Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">Browse Topics</h2>
-          <p class="section-subtitle">Explore what speaks to your heart</p>
-        </div>
-
-        <div class="topics-grid">
-          <div
-            v-for="topic in topics"
-            :key="topic.id"
-            class="topic-card"
-            :style="{ background: topic.gradient }"
-          >
-            <q-icon :name="topic.icon" class="topic-icon" />
-            <h3 class="topic-title">{{ topic.title }}</h3>
-            <p class="topic-description">{{ topic.description }}</p>
-          </div>
-        </div>
-      </section>
+      <BrowseTopics :topics="topics"></BrowseTopics>
 
       <!-- Popular Now Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">
-            <q-icon name="trending_up" class="section-icon" />
-            Popular Now
-          </h2>
-          <p class="section-subtitle">What's inspiring others right now</p>
-        </div>
-
-        <div class="popular-grid">
-          <div
-            v-for="item in popularItems"
-            :key="item.id"
-            class="popular-card"
-          >
-            <div class="card-thumbnail">
-              <q-icon
-                :name="item.type === 'video' ? 'play_circle' :
-                       item.type === 'music' ? 'music_note' : 'menu_book'"
-                class="thumbnail-icon"
-              />
-            </div>
-            <div class="card-content">
-              <h4 class="card-title">{{ item.title }}</h4>
-              <p class="card-meta">{{ item.duration }}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PopularNow :items="popularItems"></PopularNow>
 
       <!-- Explore by Type Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">Explore by Type</h2>
-          <p class="section-subtitle">Find your preferred way to connect</p>
-        </div>
-
-        <div class="explore-tabs">
-          <q-tabs
-            v-model="activeTab"
-            class="custom-tabs"
-            indicator-color="white"
-            active-color="white"
-            align="justify"
-          >
-            <q-tab name="videos" label="Videos" />
-            <q-tab name="music" label="Music" />
-            <q-tab name="books" label="Books" />
-            <q-tab name="quotes" label="Quotes" />
-          </q-tabs>
-
-          <q-tab-panels v-model="activeTab" animated class="tab-panels">
-            <q-tab-panel name="videos" class="tab-panel">
-              <div class="content-grid">
-                <div class="content-card" v-for="i in 6" :key="i">
-                  <div class="content-thumbnail">
-                    <q-icon name="play_circle" class="content-icon" />
-                  </div>
-                  <div class="content-info">
-                    <h4>Inspiring Video {{ i }}</h4>
-                    <p>{{ Math.floor(Math.random() * 20) + 5 }}:{{ String(Math.floor(Math.random() * 60)).padStart(2, '0') }}</p>
-                  </div>
-                </div>
-              </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="music" class="tab-panel">
-              <div class="content-grid">
-                <div class="content-card" v-for="i in 6" :key="i">
-                  <div class="content-thumbnail">
-                    <q-icon name="music_note" class="content-icon" />
-                  </div>
-                  <div class="content-info">
-                    <h4>Worship Song {{ i }}</h4>
-                    <p>Artist Name</p>
-                  </div>
-                </div>
-              </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="books" class="tab-panel">
-              <div class="content-grid">
-                <div class="content-card" v-for="i in 6" :key="i">
-                  <div class="content-thumbnail">
-                    <q-icon name="menu_book" class="content-icon" />
-                  </div>
-                  <div class="content-info">
-                    <h4>Inspiring Book {{ i }}</h4>
-                    <p>By Author Name</p>
-                  </div>
-                </div>
-              </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="quotes" class="tab-panel">
-              <div class="content-grid quotes-grid">
-                <div class="quote-card" v-for="i in 6" :key="i">
-                  <q-icon name="format_quote" class="quote-mark" />
-                  <p class="quote-text">Inspiring quote {{ i }} about faith, hope, and love that touches the heart.</p>
-                  <div class="quote-author">- Author Name</div>
-                </div>
-              </div>
-            </q-tab-panel>
-          </q-tab-panels>
-        </div>
-      </section>
+      <ExploreByType></ExploreByType>
 
       <!-- Daily Inspirations Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">
-            <q-icon name="wb_sunny" class="section-icon" />
-            Daily Inspirations
-          </h2>
-          <p class="section-subtitle">Your daily dose of spiritual nourishment</p>
-        </div>
-
-        <div class="daily-grid">
-          <div class="daily-card">
-            <q-icon name="format_quote" class="daily-icon" />
-            <h4>Quote of the Day</h4>
-            <p>{{ dailyQuote }}</p>
-          </div>
-          <div class="daily-card">
-            <q-icon name="music_note" class="daily-icon" />
-            <h4>Song of the Day</h4>
-            <p>{{ dailySong }}</p>
-          </div>
-          <div class="daily-card">
-            <q-icon name="menu_book" class="daily-icon" />
-            <h4>Daily Devotional</h4>
-            <p>{{ dailyDevotional }}</p>
-          </div>
-        </div>
-      </section>
+      <daily-inspirations :devotional="dailyDevotional" :quote="dailyQuote" :song="dailySong"></daily-inspirations>
 
       <!-- Call to Action Section -->
       <section class="cta-section">
@@ -225,10 +79,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import DailyInspirations from '../components/Home/DailyInspirations.vue'
+import ExploreByType from '../components/Home/ExploreByType.vue'
+import PopularNow from '../components/Home/PopularNow.vue'
+import BrowseTopics from '../components/Home/BrowseTopics.vue'
 
 // Search functionality
 const searchQuery = ref('')
-const activeTab = ref('videos')
+//const activeTab = ref('videos')
 
 // Sample data
 const topics = ref([
@@ -237,28 +95,36 @@ const topics = ref([
     title: 'Faith',
     description: 'Strengthen your faith journey',
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    icon: 'church'
+    icon: 'church',
+    image: 'https://via.placeholder.com/100?text=Faith',
+    slug: 'faith'
   },
   {
     id: 2,
     title: 'Hope',
     description: 'Find light in darkness',
     gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    icon: 'lightbulb'
+    icon: 'lightbulb',
+    image: 'https://via.placeholder.com/100?text=Hope',
+    slug: 'hope'
   },
   {
     id: 3,
     title: 'Love',
     description: 'Discover unconditional love',
     gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    icon: 'favorite'
+    icon: 'favorite',
+    image: 'https://via.placeholder.com/100?text=Love',
+    slug: 'love'
   },
   {
     id: 4,
     title: 'Peace',
     description: 'Find inner tranquility',
     gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    icon: 'spa'
+    icon: 'spa',
+    image: 'https://via.placeholder.com/100?text=Peace',
+    slug: 'peace'
   }
 ])
 
@@ -267,19 +133,22 @@ const popularItems = ref([
     id: 1,
     title: 'Top Sermon This Week',
     type: 'video',
-    duration: '28:45'
+    duration: '28:45',
+    cover: 'https://via.placeholder.com/150',
   },
   {
     id: 2,
     title: 'Peaceful Worship Mix',
     type: 'music',
-    duration: '1:15:30'
+    duration: '1:15:30',
+    cover: 'https://via.placeholder.com/150',
   },
   {
     id: 3,
     title: 'Daily Devotional',
     type: 'book',
-    duration: '5 min read'
+    duration: '5 min read',
+    cover: 'https://via.placeholder.com/150',
   }
 ])
 

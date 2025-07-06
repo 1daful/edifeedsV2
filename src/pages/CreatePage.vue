@@ -84,9 +84,10 @@ async function handleSubmit(type: string) {
   }
 }
 
-function onFileAdded(files: readonly File[]) {
+async function onFileAdded(files: readonly File[]) {
   try {
-    addFiles(Array.from(files), form.value.thumbnail);
+    const result = await addFiles(Array.from(files));
+    form.value.thumbnail = result ?? '';
   } catch (error) {
     console.error('Error uploading file:', error);
     alert('Failed to upload thumbnail.');

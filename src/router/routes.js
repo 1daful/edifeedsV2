@@ -15,11 +15,13 @@ const routes = [
       { path: '/settings', name: 'settings', component: () => import('pages/SettingPage.vue') },
       { path: '/user-profile', name: 'userProfile', component: () => import('pages/UserProfile.vue') },
       { path: '/content-preview/:id', name: 'content-preview', component: () => import('pages/ContentPreview.vue') },
+      { path: '/collection/:id', name: 'collection', component: () => import('pages/CollectionDetail.vue') },
       { path: '/author/:id', name: 'author', component: () => import('pages/AuthorPage.vue') },
       { path: '/auth', name: 'auth', component: () => import('pages/Auth.vue') },
       { path: '/about', name: 'about', component: () => import('pages/About.vue') },
       { path: '/contact', name: 'contact', component: () => import('pages/ContactUs.vue') },
       { path: '/terms', name: 'terms', component: () => import('pages/TermsOfService.vue') },
+      { path: '/home', name: 'home', component: () => import('pages/HomePage10.vue') },
     ]
   },
 

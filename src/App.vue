@@ -18,3 +18,17 @@ onBeforeMount(() => {
   })
 })
 </script>
+
+<style>
+.rounded-borders {
+  border-radius: 12px;
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+</style>
