@@ -1,15 +1,7 @@
 import { RestClient } from "@edifiles/services";
 //import { getTodayQuote } from "./zenQuotes";
 //import { searchBooks } from "./googleBooks";
-
-export const aggregator: Record<string, any> = {}
-
-export interface AggregatedContent {
-  videos: [];
-  quote: string;
-  books: [];
-}
-
+export const aggregator = {};
 /*export async function getContent(resource: Resource): Promise<any> {
   //let data: any[] = await client.get(reso).data;
   const data = resource.get.response
@@ -38,7 +30,6 @@ export interface AggregatedContent {
     //books: booksRes.data.items ?? [],
   ;
 }*/
-
 /*export const getAggregatedContent = async (query: string): Promise<any> => {
   const videos = await Promise.all([
     getYoutubeVideos()
@@ -50,5 +41,4 @@ export interface AggregatedContent {
 
   return aggregatedContent
 }*/
-
-export const mediaClient = new RestClient()
+export const mediaClient = new RestClient();

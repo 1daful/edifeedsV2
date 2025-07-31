@@ -1,13 +1,18 @@
 export const sampleBooks = [
     {
         id: '1',
-        type: "book",
+        type: "Book",
         title: "The Power of Purpose",
-        author: "John C. Maxwell",
+        author: {
+            id: '',
+            name: 'John C. Maxwell',
+            bio: '',
+            photo: ''
+        },
         authorId: 101,
         description: "A motivational book that helps readers discover their life’s purpose and unlock their true potential.",
-        coverImage: "https://example.com/covers/power-of-purpose.jpg",
-        publishedDate: "2020-05-10",
+        thumbnail: "https://example.com/covers/power-of-purpose.jpg",
+        publishedAt: "2020-05-10",
         pageCount: 248,
         language: "English",
         genres: ["Motivation", "Self-help"],
@@ -31,11 +36,12 @@ export const sampleBooks = [
             { title: "Chapter 1: Finding Meaning", page: 5 },
             { title: "Chapter 2: Taking Action", page: 33 }
         ],
-        topic: "Purpose"
+        topic: "Purpose",
+        saves: 0
     },
     {
         id: '2',
-        type: "book",
+        type: "Book",
         title: "Grace Over Grind",
         author: "Shae Bynes",
         authorId: 102,
@@ -128,3 +134,17 @@ export const sampleAuthors = [
         books: [3]
     }
 ];
+export const quietTime = {
+    date: "2025-07-18",
+    verse: {
+        text: "Be still, and know that I am God. - Psalm 46:10",
+        reference: "Psalm 46:10"
+    },
+    reflection: "Take a few moments today to pause and rest in God's presence, letting go of distractions and worries.",
+    worshipTrack: {
+        title: "Soaking Worship Instrumental",
+        link: "https://www.youtube.com/watch?v=example",
+        thumbnail: "https://i.ytimg.com/vi/example/hqdefault.jpg"
+    },
+    prayer: "Lord, help me to find quietness in You today, and remind me of Your constant presence."
+};

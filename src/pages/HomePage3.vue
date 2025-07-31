@@ -108,7 +108,7 @@
   </q-page>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import CreateCTA from '../components/createCTA.vue';
 import ExploreTopics from '../components/ExploreTopics.vue';

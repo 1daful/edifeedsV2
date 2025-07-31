@@ -1,772 +1,424 @@
+// pages/IndexPage.vue - Enhanced Edifeeds Homepage with advanced features (FIXED)
 <template>
-  <q-page class="elegant-home-page">
-    <!-- Simple Background -->
-    <div class="background-gradient"></div>
+  <q-page class="homepage">
+    <!-- HERO SECTION with enhanced visuals -->
+     <HeroSlide></HeroSlide>
 
-    <!-- Hero Section -->
-    <div class="hero-section">
-      <div class="hero-content">
-        <div class="hero-text">
-          <h1 class="hero-title">
-            <span class="gradient-text">What are you</span>
-            <span class="looking-for">looking for today?</span>
-          </h1>
-          <p class="hero-subtitle">
-            Discover inspiration, guidance, and uplifting content ✨
-          </p>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="search-container">
-          <q-input
-            v-model="searchQuery"
-            class="elegant-search"
-            placeholder="Search for inspiration..."
-            standout="bg-white/20 text-white"
-            dark
-            rounded
-          >
-            <template #prepend>
-              <q-icon name="search" class="search-icon" />
-            </template>
-          </q-input>
-        </div>
+    <!-- QUICK ACCESS TOOLBAR -->
+    <div class="quick-access q-mt-md">
+      <div class="row q-gutter-sm justify-center">
+        <q-btn
+          v-for="action in quickActions"
+          :key="action.id"
+          :icon="action.icon"
+          :label="action.label"
+          :color="action.color"
+          class="quick-action-btn"
+          @click="handleQuickAction(action)"
+          unelevated
+        />
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Browse Topics Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">Browse Topics</h2>
-          <p class="section-subtitle">Explore what speaks to your heart</p>
-        </div>
-
-        <div class="topics-grid">
-          <div
-            v-for="topic in topics"
-            :key="topic.id"
-            class="topic-card"
-            :style="{ background: topic.gradient }"
-          >
-            <q-icon :name="topic.icon" class="topic-icon" />
-            <h3 class="topic-title">{{ topic.title }}</h3>
-            <p class="topic-description">{{ topic.description }}</p>
+    <!-- QUIET TIME CORNER with enhanced features -->
+     <!-- QueitTime></QueitTime -->
+    <!-- UPCOMING EVENTS with enhanced preview -->
+    <!-- div class="q-mt-lg">
+      <q-card class="events-card" elevation="2">
+        <q-card-section>
+          <div class="row items-center justify-between q-mb-md">
+            <div class="text-h6">
+              <q-icon name="event" class="q-mr-sm" />
+              Upcoming Events
+            </div>
+            <q-btn flat label="See All" to="/events" color="primary" />
           </div>
-        </div>
-      </section>
 
-      <!-- Popular Now Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">
-            <q-icon name="trending_up" class="section-icon" />
-            Popular Now
-          </h2>
-          <p class="section-subtitle">What's inspiring others right now</p>
-        </div>
+          <q-carousel
+            animated
+            swipeable
+            height="180px"
+            control-color="primary"
+            v-model="currentEventSlide"
+          >
+            <q-carousel-slide
+              v-for="event in upcomingEvents"
+              :key="event.id"
+              :name="event.id"
+            >
+              <q-card flat class="event-preview-card full-height">
+                <q-card-section class="q-pa-md">
+                  <div class="text-h6 text-primary">{{ event.title }}</div>
+                  <div class="text-body2 text-grey-7 q-mt-sm">{{ event.description }}</div>
+                  <div class="row items-center q-mt-md">
+                    <q-icon name="schedule" size="sm" class="q-mr-xs" />
+                    <span class="text-caption">{{ formatEventDate(event.date) }}</span>
+                  </div>
+                  <div class="row items-center q-mt-xs">
+                    <q-icon name="location_on" size="sm" class="q-mr-xs" />
+                    <span class="text-caption">{{ event.location }}</span>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </q-carousel-slide>
+          </q-carousel>
+        </q-card-section>
+      </q-card>
+    </div -->
 
-        <div class="popular-grid">
-          <div
-            v-for="item in popularItems"
+    <!-- DISCOVERY SECTIONS with enhanced cards -->
+    <div v-for="section in discoverySections" :key="section.title" class="q-mt-lg">
+      <div class="row items-center justify-between q-mb-md">
+        <div class="text-h6">{{ section.title }}</div>
+        <q-btn flat dense label="See All" :to="section.link" color="primary" />
+      </div>
+
+      <q-scroll-area
+        horizontal
+        class="discovery-scroll-area rounded-borders"
+        style="height: 220px"
+      >
+        <div class="row no-wrap q-gutter-sm q-pa-sm">
+          <q-card
+            v-for="item in section.items"
             :key="item.id"
-            class="popular-card"
+            class="discovery-card cursor-pointer"
+            @click="navigateToItem(item)"
+            :class="{ 'discovery-card-hover': true }"
           >
-            <div class="card-thumbnail">
-              <q-icon
-                :name="item.type === 'video' ? 'play_circle' :
-                       item.type === 'music' ? 'music_note' : 'menu_book'"
-                class="thumbnail-icon"
-              />
+            <div class="discovery-card-image">
+              <img :src="item.image" :alt="item.title" />
+              <div class="discovery-card-overlay">
+                <q-btn
+                  round
+                  color="white"
+                  text-color="primary"
+                  icon="play_arrow"
+                  size="md"
+                  @click.stop="playItem(item)"
+                />
+              </div>
             </div>
-            <div class="card-content">
-              <h4 class="card-title">{{ item.title }}</h4>
-              <p class="card-meta">{{ item.duration }}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Explore by Type Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">Explore by Type</h2>
-          <p class="section-subtitle">Find your preferred way to connect</p>
-        </div>
-
-        <div class="explore-tabs">
-          <q-tabs
-            v-model="activeTab"
-            class="custom-tabs"
-            indicator-color="white"
-            active-color="white"
-            align="justify"
-          >
-            <q-tab name="videos" label="Videos" />
-            <q-tab name="music" label="Music" />
-            <q-tab name="books" label="Books" />
-            <q-tab name="quotes" label="Quotes" />
-          </q-tabs>
-
-          <q-tab-panels v-model="activeTab" animated class="tab-panels">
-            <q-tab-panel name="videos" class="tab-panel">
-              <div class="content-grid">
-                <div class="content-card" v-for="i in 6" :key="i">
-                  <div class="content-thumbnail">
-                    <q-icon name="play_circle" class="content-icon" />
-                  </div>
-                  <div class="content-info">
-                    <h4>Inspiring Video {{ i }}</h4>
-                    <p>{{ Math.floor(Math.random() * 20) + 5 }}:{{ String(Math.floor(Math.random() * 60)).padStart(2, '0') }}</p>
-                  </div>
-                </div>
+            <q-card-section class="q-pa-sm">
+              <div class="text-body2 text-weight-medium">{{ item.title }}</div>
+              <div class="text-caption text-grey-6">{{ item.subtitle }}</div>
+              <div class="row items-center q-mt-xs">
+                <q-rating
+                  v-model="item.rating"
+                  readonly
+                  size="sm"
+                  color="amber"
+                  class="q-mr-xs"
+                />
+                <span class="text-caption">({{ item.reviews }})</span>
               </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="music" class="tab-panel">
-              <div class="content-grid">
-                <div class="content-card" v-for="i in 6" :key="i">
-                  <div class="content-thumbnail">
-                    <q-icon name="music_note" class="content-icon" />
-                  </div>
-                  <div class="content-info">
-                    <h4>Worship Song {{ i }}</h4>
-                    <p>Artist Name</p>
-                  </div>
-                </div>
-              </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="books" class="tab-panel">
-              <div class="content-grid">
-                <div class="content-card" v-for="i in 6" :key="i">
-                  <div class="content-thumbnail">
-                    <q-icon name="menu_book" class="content-icon" />
-                  </div>
-                  <div class="content-info">
-                    <h4>Inspiring Book {{ i }}</h4>
-                    <p>By Author Name</p>
-                  </div>
-                </div>
-              </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="quotes" class="tab-panel">
-              <div class="content-grid quotes-grid">
-                <div class="quote-card" v-for="i in 6" :key="i">
-                  <q-icon name="format_quote" class="quote-mark" />
-                  <p class="quote-text">Inspiring quote {{ i }} about faith, hope, and love that touches the heart.</p>
-                  <div class="quote-author">- Author Name</div>
-                </div>
-              </div>
-            </q-tab-panel>
-          </q-tab-panels>
+            </q-card-section>
+          </q-card>
         </div>
-      </section>
-
-      <!-- Daily Inspirations Section -->
-      <section class="content-section">
-        <div class="section-header">
-          <h2 class="section-title">
-            <q-icon name="wb_sunny" class="section-icon" />
-            Daily Inspirations
-          </h2>
-          <p class="section-subtitle">Your daily dose of spiritual nourishment</p>
-        </div>
-
-        <div class="daily-grid">
-          <div class="daily-card">
-            <q-icon name="format_quote" class="daily-icon" />
-            <h4>Quote of the Day</h4>
-            <p>{{ dailyQuote }}</p>
-          </div>
-          <div class="daily-card">
-            <q-icon name="music_note" class="daily-icon" />
-            <h4>Song of the Day</h4>
-            <p>{{ dailySong }}</p>
-          </div>
-          <div class="daily-card">
-            <q-icon name="menu_book" class="daily-icon" />
-            <h4>Daily Devotional</h4>
-            <p>{{ dailyDevotional }}</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Call to Action Section -->
-      <section class="cta-section">
-        <div class="cta-content">
-          <h2 class="cta-title">Ready to Begin Your Journey?</h2>
-          <p class="cta-text">Join thousands who find daily inspiration and spiritual growth</p>
-          <div class="cta-buttons">
-            <q-btn
-              unelevated
-              rounded
-              size="lg"
-              class="cta-primary"
-              label="Get Started"
-              @click="handleGetStarted"
-            />
-            <q-btn
-              outline
-              rounded
-              size="lg"
-              class="cta-secondary"
-              label="Learn More"
-              @click="handleLearnMore"
-            />
-          </div>
-        </div>
-      </section>
+      </q-scroll-area>
     </div>
+
+    <!-- PERSONALIZED TOOLS with enhanced features -->
+    <div class="q-mt-lg">
+      <div class="text-h6 q-mb-md">
+        <q-icon name="bookmark" class="q-mr-sm" />
+        Continue Watching & Bookmarks
+      </div>
+
+      <q-tabs v-model="personalizedTab" class="q-mb-md">
+        <q-tab name="continue" label="Continue Watching" />
+        <q-tab name="bookmarks" label="Bookmarks" />
+        <q-tab name="favorites" label="Favorites" />
+      </q-tabs>
+
+      <q-tab-panels v-model="personalizedTab">
+        <q-tab-panel name="continue">
+          <PersonalizedContentGrid :items="continueWatching" />
+        </q-tab-panel>
+        <q-tab-panel name="bookmarks">
+          <PersonalizedContentGrid :items="bookmarks" />
+        </q-tab-panel>
+        <q-tab-panel name="favorites">
+          <PersonalizedContentGrid :items="favorites" />
+        </q-tab-panel>
+      </q-tab-panels>
+    </div>
+
+    <!-- FLOATING ACTION BUTTON - FIXED VERSION -->
+    <q-page-sticky position="bottom-right" :offset="[18, 18]">
+      <q-fab
+        v-model="showCreateMenu"
+        icon="add"
+        direction="up"
+        color="primary"
+        @click.stop
+      >
+        <q-fab-action
+          v-for="option in createOptions"
+          :key="option.id"
+          :icon="option.icon"
+          :label="option.label"
+          color="primary"
+          @click="handleCreate(option)"
+        />
+      </q-fab>
+    </q-page-sticky>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
+import HeroSlide from '../components/Home/HeroSlide.vue'
+//import PersonalizedContentGrid from '../components/PersonalizedContentGrid.vue'
 
-// Search functionality
-const searchQuery = ref('')
-const activeTab = ref('videos')
+const $q = useQuasar()
+const router = useRouter()
 
-// Sample data
-const topics = ref([
+// Reactive state
+const currentEventSlide = ref('event-1')
+const personalizedTab = ref('continue')
+const showCreateMenu = ref(false)
+
+// Enhanced data structures
+
+const quickActions = ref([
+  { id: 'search', icon: 'search', label: 'Search', color: 'primary' },
+  { id: 'live', icon: 'live_tv', label: 'Live', color: 'red' },
+  { id: 'donate', icon: 'favorite', label: 'Donate', color: 'pink' },
+  { id: 'connect', icon: 'people', label: 'Connect', color: 'green' }
+])
+
+
+const upcomingEvents = ref([
   {
-    id: 1,
-    title: 'Faith',
-    description: 'Strengthen your faith journey',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    icon: 'church'
+    id: 'event-1',
+    title: 'Sunday Service',
+    description: 'Join us for worship, fellowship, and God\'s word',
+    date: new Date('2024-01-21'),
+    location: 'Main Sanctuary'
   },
   {
-    id: 2,
-    title: 'Hope',
-    description: 'Find light in darkness',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    icon: 'lightbulb'
+    id: 'event-2',
+    title: 'Bible Study',
+    description: 'Deep dive into the Gospel of Matthew',
+    date: new Date('2024-01-22'),
+    location: 'Fellowship Hall'
   },
   {
-    id: 3,
-    title: 'Love',
-    description: 'Discover unconditional love',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    icon: 'favorite'
-  },
-  {
-    id: 4,
-    title: 'Peace',
-    description: 'Find inner tranquility',
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    icon: 'spa'
+    id: 'event-3',
+    title: 'Youth Group',
+    description: 'Fun activities and spiritual growth for teens',
+    date: new Date('2024-01-23'),
+    location: 'Youth Center'
   }
 ])
 
-const popularItems = ref([
+const discoverySections = computed(() => [
   {
-    id: 1,
-    title: 'Top Sermon This Week',
-    type: 'video',
-    duration: '28:45'
+    title: '🪐 Topic Spotlight',
+    link: '/topics',
+    items: generateSampleItems('topic', 8)
   },
   {
-    id: 2,
-    title: 'Peaceful Worship Mix',
-    type: 'music',
-    duration: '1:15:30'
+    title: '💬 Most Discussed This Week',
+    link: '/discussions',
+    items: generateSampleItems('discussion', 8)
   },
   {
-    id: 3,
-    title: 'Daily Devotional',
-    type: 'book',
-    duration: '5 min read'
+    title: '🎶 Worship Picks',
+    link: '/music',
+    items: generateSampleItems('music', 8)
+  },
+  {
+    title: '👀 Because You Watched…',
+    link: '/recommended',
+    items: generateSampleItems('recommended', 8)
   }
 ])
 
-const dailyQuote = '"I can do all things through Christ who strengthens me."'
-const dailySong = 'Way Maker - Sinach'
-const dailyDevotional = 'Today\'s devotion: Trust in His timing and find peace in His plan'
+const continueWatching = ref(generateSampleItems('continue', 6))
+const bookmarks = ref(generateSampleItems('bookmark', 6))
+const favorites = ref(generateSampleItems('favorite', 6))
+
+const createOptions = ref([
+  { id: 'post', icon: 'article', label: 'Create Post' },
+  { id: 'prayer', icon: 'volunteer_activism', label: 'Prayer Request' },
+  { id: 'testimony', icon: 'record_voice_over', label: 'Share Testimony' },
+  { id: 'question', icon: 'help', label: 'Ask Question' }
+])
 
 // Methods
-const handleGetStarted = () => {
-  console.log('Get Started clicked')
+function generateSampleItems(type, count) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `${type}-${i + 1}`,
+    title: `${type.charAt(0).toUpperCase() + type.slice(1)} Item ${i + 1}`,
+    subtitle: `Subtitle for ${type} ${i + 1}`,
+    image: `/api/placeholder/160/120`,
+    rating: Math.floor(Math.random() * 5) + 1,
+    reviews: Math.floor(Math.random() * 100) + 1,
+    duration: `${Math.floor(Math.random() * 60) + 5} min`
+  }))
 }
 
-const handleLearnMore = () => {
-  console.log('Learn More clicked')
+function handleQuickAction(action) {
+  switch (action.id) {
+    case 'search':
+      router.push('/search')
+      break
+    case 'live':
+      router.push('/live')
+      break
+    case 'donate':
+      router.push('/donate')
+      break
+    case 'connect':
+      router.push('/connect')
+      break
+  }
 }
+
+function formatEventDate(date) {
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function navigateToItem(item) {
+  // Navigate to item detail page
+  router.push(`/content/${item.id}`)
+}
+
+function playItem(item) {
+  // Handle play action
+  $q.notify({
+    message: `Playing: ${item.title}`,
+    icon: 'play_arrow',
+    color: 'primary'
+  })
+}
+
+function handleCreate(option) {
+  showCreateMenu.value = false
+  router.push(`/create/${option.id}`)
+  $q.notify({
+    message: `Creating ${option.label}`,
+    icon: option.icon,
+    color: 'primary'
+  })
+}
+
+// Lifecycle
+onMounted(() => {
+  // Initialize any necessary data or start timers
+  console.log('Homepage mounted')
+})
 </script>
 
 <style scoped>
-.elegant-home-page {
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
+.homepage {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  /* Add bottom padding to prevent content from being hidden behind FAB */
+  padding-bottom: 80px;
 }
 
-/* Simple Background */
-.background-gradient {
-  position: fixed;
-  top: 0;
-  left: 0;
+.quick-access {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-action-btn {
+  min-width: 120px;
+  border-radius: 8px;
+}
+
+.events-card {
+  border-radius: 16px;
+}
+
+.event-preview-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+}
+
+.discovery-scroll-area {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.discovery-card {
+  width: 160px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.discovery-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.discovery-card-image {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+}
+
+.discovery-card-image img {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  z-index: -1;
+  object-fit: cover;
 }
 
-/* Hero Section */
-.hero-section {
-  min-height: 60vh;
+.discovery-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.hero-content {
-  text-align: center;
-  max-width: 700px;
-  width: 100%;
+.discovery-card:hover .discovery-card-overlay {
+  opacity: 1;
 }
 
-.hero-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 700;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: inline-block;
-}
-
-.looking-for {
-  color: rgba(255, 255, 255, 0.9);
-  display: inline-block;
-  margin-left: 0.5rem;
-}
-
-.hero-subtitle {
-  font-size: clamp(1rem, 3vw, 1.3rem);
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 2rem;
-  font-weight: 300;
-}
-
-/* Search Container */
-.search-container {
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.elegant-search {
-  backdrop-filter: blur(10px);
-  border-radius: 25px;
-  transition: transform 0.2s ease;
-}
-
-.elegant-search:hover {
-  transform: translateY(-2px);
-}
-
-.search-icon {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1.3rem;
-}
-
-/* Main Content */
-.main-content {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 30px 30px 0 0;
-  min-height: 100vh;
-  padding: 3rem 0;
-  position: relative;
-  z-index: 1;
-}
-
-/* Content Sections */
-.content-section {
-  margin: 3rem 0;
-  padding: 0 2rem;
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.section-subtitle {
-  font-size: 1.1rem;
-  color: #666;
-  font-weight: 300;
-}
-
-.section-icon {
-  font-size: 1.8rem;
-  color: #667eea;
-}
-
-/* Topics Grid */
-.topics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.topic-card {
-  padding: 2rem;
-  border-radius: 15px;
-  text-align: center;
-  color: white;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
-}
-
-.topic-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-.topic-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.topic-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.topic-description {
-  font-size: 1rem;
-  opacity: 0.9;
-}
-
-/* Popular Grid */
-.popular-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.popular-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.popular-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-.card-thumbnail {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.thumbnail-icon {
-  font-size: 2rem;
-  color: white;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.card-meta {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Explore Tabs */
-.explore-tabs {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.custom-tabs {
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 15px;
-  margin-bottom: 2rem;
-}
-
-.tab-panels {
-  background: transparent;
-}
-
-.tab-panel {
-  padding: 0;
-}
-
-/* Content Grid */
-.content-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.content-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.content-card:hover {
-  transform: translateY(-3px);
-}
-
-.content-thumbnail {
-  width: 100%;
-  height: 120px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.content-icon {
-  font-size: 2.5rem;
-  color: white;
-}
-
-.content-info h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.content-info p {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Quote Grid */
-.quotes-grid .content-card {
-  text-align: center;
-}
-
-.quote-card {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-.quote-card:hover {
-  transform: translateY(-3px);
-}
-
-.quote-mark {
-  font-size: 2rem;
-  color: #667eea;
-  margin-bottom: 1rem;
-}
-
-.quote-text {
-  font-size: 1.1rem;
-  color: #333;
-  font-style: italic;
-  margin-bottom: 1rem;
-  line-height: 1.6;
-}
-
-.quote-author {
-  color: #666;
-  font-weight: 600;
-}
-
-/* Daily Grid */
-.daily-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.daily-card {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-.daily-card:hover {
-  transform: translateY(-3px);
-}
-
-.daily-icon {
-  font-size: 2.5rem;
-  color: #667eea;
-  margin-bottom: 1rem;
-}
-
-.daily-card h4 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.daily-card p {
-  color: #666;
-  line-height: 1.6;
-}
-
-/* Call to Action */
-.cta-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  padding: 3rem 2rem;
-  margin: 3rem 2rem;
-  text-align: center;
-  color: white;
-}
-
-.cta-title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.cta-text {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-}
-
-.cta-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.cta-primary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 1rem 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.cta-primary:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.cta-secondary {
-  color: white;
-  border-color: rgba(255, 255, 255, 0.5);
-  padding: 1rem 2rem;
-  transition: all 0.3s ease;
-}
-
-.cta-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-/* Responsive Design */
+/* Responsive design */
 @media (max-width: 768px) {
-  .content-section {
-    padding: 0 1rem;
-    margin: 2rem 0;
+  .homepage {
+    padding: 8px;
+    padding-bottom: 80px;
   }
 
-  .hero-section {
-    min-height: 50vh;
-    padding: 1rem;
+  .quick-action-btn {
+    min-width: 80px;
+    font-size: 0.8rem;
   }
 
-  .section-title {
-    font-size: 1.8rem;
-    flex-direction: column;
-    gap: 0.5rem;
+  .discovery-card {
+    width: 140px;
+    height: 180px;
   }
 
-  .topics-grid, .popular-grid, .daily-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cta-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .cta-primary, .cta-secondary {
-    width: 100%;
-    max-width: 280px;
-  }
-}
-
-@media (max-width: 480px) {
-  .main-content {
-    padding: 2rem 0;
-  }
-
-  .hero-section {
-    min-height: 40vh;
-  }
-
-  .cta-section {
-    margin: 2rem 0.5rem;
-    padding: 2rem 1rem;
+  .discovery-card-image {
+    height: 100px;
   }
 }
 </style>

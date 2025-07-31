@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-export async function addFiles(files, thumbnail) {
+export async function addFiles(files) {
     const file = files[0];
     if (!file)
         return;
@@ -18,5 +18,5 @@ export async function addFiles(files, thumbnail) {
     const { data: publicUrlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
-    thumbnail = publicUrlData?.publicUrl || '';
+    return publicUrlData?.publicUrl || '';
 }

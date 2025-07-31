@@ -1,342 +1,220 @@
 <template>
-  <section class="q-mb-xl">
-    <!-- Enhanced Header with Gradient Text -->
-    <div class="text-center q-mb-lg">
-      <h2 class="gradient-text text-h4 q-mb-sm" style="font-weight: 600; letter-spacing: -0.5px;">
+  <section class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <q-icon name="wb_sunny" class="section-icon" />
         Daily Inspirations
       </h2>
-      <div class="accent-line"></div>
+      <p class="section-subtitle">Your daily dose of spiritual nourishment</p>
     </div>
 
-    <!-- Enhanced Card Grid with Staggered Animation -->
-    <div class="inspiration-grid">
+    <div class="daily-grid">
       <q-card
-        v-for="(item, index) in inspirationItems"
+        v-for="(item, index) in dailyItems"
         :key="index"
-        class="inspiration-card"
-        :class="`card-${index + 1}`"
-        flat
-        @click="onCardClick(item.type)"
+        class="daily-card"
+        :style="{ animationDelay: `${(index + 1) * 0.1}s` }"
       >
-        <!-- Gradient Background Overlay -->
-        <div class="card-gradient-overlay" :class="item.gradientClass"></div>
-
-        <!-- Card Content -->
-        <q-card-section class="card-content">
-          <!-- Icon with Animated Background -->
-          <div class="icon-container" :class="item.iconBg">
-            <q-icon
-              :name="item.icon"
-              size="28px"
-              class="icon-main"
-              :class="item.iconColor"
-            />
-          </div>
-
-          <!-- Title with Enhanced Typography -->
-          <h6 class="card-title">
-            {{ item.title }}
-          </h6>
-
-          <!-- Content with Better Spacing -->
-          <p class="card-text">
-            {{ item.content }}
-          </p>
-
-          <!-- Subtle Action Indicator -->
-          <div class="card-action">
-            <q-icon name="arrow_forward" size="16px" class="action-icon" />
-          </div>
+        <q-card-section class="text-center">
+          <q-icon
+            :name="item.icon"
+            class="daily-icon"
+            :class="`daily-icon-${index + 1}`"
+          />
+          <h4 class="daily-title">{{ item.title }}</h4>
+          <p class="daily-content">{{ item.content }}</p>
         </q-card-section>
-
-        <!-- Decorative Elements -->
-        <div class="card-shine"></div>
-        <div class="card-border-glow"></div>
       </q-card>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+  const props = defineProps({
+    dailyQuote: {
+      type: String,
+      default: ''
+    },
+    dailySong: {
+      type: String,
+      default: ''
+    },
+    dailyDevotional: {
+      type: String,
+      default: ''
+    }
+  })
 
-const props = defineProps<{
-  quote: string
-  song: string
-  devotional: string
-}>()
+  const dailyItems = [
+    {
+      icon: 'format_quote',
+      title: 'Quote of the Day',
+      content: props.dailyQuote || '"Faith is taking the first step even when you don\'t see the whole staircase." - Martin Luther King Jr.'
+    },
+    {
+      icon: 'music_note',
+      title: 'Song of the Day',
+      content: props.dailySong || '"Amazing Grace" - A timeless hymn that speaks to the power of redemption and divine mercy in our lives.'
+    },
+    {
+      icon: 'menu_book',
+      title: 'Daily Devotional',
+      content: props.dailyDevotional || 'Today\'s reading reminds us that in times of uncertainty, we can find peace in prayer and trust in God\'s plan.'
+    }
+  ]
 
-const inspirationItems = computed(() => [
-  {
-    type: 'quote',
-    title: 'Quote of the Day',
-    content: props.quote,
-    icon: 'format_quote',
-    iconColor: 'text-amber-7',
-    iconBg: 'icon-bg-amber',
-    gradientClass: 'gradient-amber'
-  },
-  {
-    type: 'song',
-    title: 'Worship Song',
-    content: props.song,
-    icon: 'music_note',
-    iconColor: 'text-purple-7',
-    iconBg: 'icon-bg-purple',
-    gradientClass: 'gradient-purple'
-  },
-  {
-    type: 'devotional',
-    title: 'Devotional Highlight',
-    content: props.devotional,
-    icon: 'auto_stories',
-    iconColor: 'text-teal-7',
-    iconBg: 'icon-bg-teal',
-    gradientClass: 'gradient-teal'
-  }
-])
-
-const onCardClick = (type: string) => {
-  // Handle card click - could emit event or navigate
-  console.log(`Clicked ${type} card`)
-}
 </script>
 
 <style scoped>
-/* Enhanced Typography */
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-}
-
-.accent-line {
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  margin: 0 auto;
-  border-radius: 2px;
-}
-
-/* Grid Layout */
-.inspiration-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+.content-section {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 2rem;
 }
 
-/* Enhanced Card Styles */
-.inspiration-card {
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
   position: relative;
-  background: rgba(255, 255, 255, 0.95);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.section-icon {
+  font-size: 2.5rem !important;
+  color: #f39c12;
+  filter: drop-shadow(0 2px 4px rgba(243, 156, 18, 0.3));
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  font-weight: 300;
+  font-style: italic;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.daily-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.daily-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 16px !important;
+  position: relative;
   backdrop-filter: blur(10px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  min-height: 200px;
+  animation: fadeInUp 0.6s ease-out;
 }
 
-.inspiration-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Staggered Animation */
-.card-1 { animation-delay: 0.1s; }
-.card-2 { animation-delay: 0.2s; }
-.card-3 { animation-delay: 0.3s; }
-
-/* Gradient Overlays */
-.card-gradient-overlay {
+.daily-card::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  transition: height 0.3s ease;
-}
-
-.inspiration-card:hover .card-gradient-overlay {
-  height: 100%;
-  opacity: 0.05;
-}
-
-.gradient-amber {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-}
-
-.gradient-purple {
-  background: linear-gradient(135deg, #a855f7, #7c3aed);
-}
-
-.gradient-teal {
-  background: linear-gradient(135deg, #14b8a6, #0d9488);
-}
-
-/* Card Content */
-.card-content {
-  position: relative;
-  z-index: 2;
-  padding: 24px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Icon Styles */
-.icon-container {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  transition: all 0.3s ease;
-}
-
-.icon-bg-amber {
-  background: linear-gradient(135deg, #fef3c7, #fed7aa);
-}
-
-.icon-bg-purple {
-  background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
-}
-
-.icon-bg-teal {
-  background: linear-gradient(135deg, #ccfbf1, #a7f3d0);
-}
-
-.inspiration-card:hover .icon-container {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.icon-main {
-  transition: all 0.3s ease;
-}
-
-/* Typography */
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  color: #1f2937;
-  letter-spacing: -0.3px;
-}
-
-.card-text {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: #6b7280;
-  margin: 0;
-  flex-grow: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Action Indicator */
-.card-action {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.inspiration-card:hover .card-action {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.action-icon {
-  color: #9ca3af;
-  transition: all 0.3s ease;
-}
-
-.inspiration-card:hover .action-icon {
-  color: #6b7280;
-  transform: translateX(4px);
-}
-
-/* Decorative Elements */
-.card-shine {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  transition: left 0.5s;
-}
-
-.inspiration-card:hover .card-shine {
-  left: 100%;
-}
-
-.card-border-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 20px;
-  padding: 1px;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: exclude;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
+  background: linear-gradient(90deg, #3498db, #e74c3c, #f39c12);
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: 1;
 }
 
-.inspiration-card:hover .card-border-glow {
+.daily-card:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.daily-card:hover::before {
   opacity: 1;
 }
 
-/* Responsive Design */
-@media (max-width: 600px) {
-  .inspiration-grid {
+.daily-icon {
+  font-size: 3rem !important;
+  margin-bottom: 1rem;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.daily-icon-1 {
+  color: #3498db;
+}
+
+.daily-icon-2 {
+  color: #e74c3c;
+}
+
+.daily-icon-3 {
+  color: #f39c12;
+}
+
+.daily-card:hover .daily-icon {
+  transform: scale(1.1);
+}
+
+.daily-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.daily-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #34495e;
+  font-weight: 400;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .content-section {
+    padding: 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .daily-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 0 16px;
-  }
-
-  .card-content {
-    padding: 20px;
-  }
-
-  .gradient-text {
-    font-size: 1.5rem;
+    gap: 1.5rem;
   }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .inspiration-card {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(75, 85, 99, 0.3);
+/* Animation for cards appearing */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
-
-  .card-title {
-    color: #f9fafb;
-  }
-
-  .card-text {
-    color: #d1d5db;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

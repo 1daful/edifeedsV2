@@ -1,3 +1,4 @@
+"use strict";
 /*const youtube = new RestClient()
 export const getYoutubeVideos = async (): Promise<Video[]> => {
   const config = {

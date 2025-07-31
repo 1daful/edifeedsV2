@@ -1,176 +1,180 @@
 <template>
-  <q-page class="landing-page">
-    <!-- Background Animation -->
-    <div class="background-animation">
-      <div class="floating-shape shape-1"></div>
-      <div class="floating-shape shape-2"></div>
-      <div class="floating-shape shape-3"></div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="content-container flex flex-center column q-pa-xl">
-      <!-- Logo with Animation -->
-      <transition
-        appear
-        enter-active-class="animated fadeInDown"
-        :duration="800"
-      >
-        <q-img
-          src="https://via.placeholder.com/150x150?text=Edifeeds"
-          contain
-          class="logo q-mb-lg"
-          :class="{ 'logo-dark': isDark }"
-          style="max-width: 200px;"
-        />
-      </transition>
-
-      <!-- Animated Title -->
-      <transition
-        appear
-        enter-active-class="animated fadeInUp"
-        :duration="1000"
-      >
-        <div class="title-container text-center q-mb-md">
-          <div class="text-h4 text-primary title-text">
-            Your Daily Source of
-          </div>
-          <div class="text-h3 text-accent animated-gradient-text">
-            Christian Inspiration
-          </div>
+  <q-layout>
+    <q-page-container>
+      <q-page class="landing-page">
+        <!-- Background Animation -->
+        <div class="background-animation">
+          <div class="floating-shape shape-1"></div>
+          <div class="floating-shape shape-2"></div>
+          <div class="floating-shape shape-3"></div>
         </div>
-      </transition>
 
-      <!-- Subtitle with Typing Effect -->
-      <transition
-        appear
-        enter-active-class="animated fadeIn"
-        :duration="1200"
-      >
-        <div class="text-subtitle1 text-grey-7 text-center q-mb-xl subtitle-text">
-          {{ displayedText }}
-          <span class="cursor" :class="{ 'blink': showCursor }">|</span>
-        </div>
-      </transition>
-
-      <!-- Feature Cards -->
-      <transition
-        appear
-        enter-active-class="animated fadeInUp"
-        :duration="1400"
-      >
-        <div class="feature-grid q-mb-xl">
-          <q-card
-            v-for="(feature, index) in features"
-            :key="index"
-            class="feature-card"
-            flat
-            bordered
-            :class="{ 'feature-card-dark': isDark }"
+        <!-- Main Content -->
+        <div class="content-container flex flex-center column q-pa-xl">
+          <!-- Logo with Animation -->
+          <transition
+            appear
+            enter-active-class="animated fadeInDown"
+            :duration="800"
           >
-            <q-card-section class="text-center">
-              <q-icon
-                :name="feature.icon"
-                size="2rem"
-                :color="feature.color"
-                class="q-mb-sm"
-              />
-              <div class="text-subtitle2 text-weight-medium">
-                {{ feature.title }}
+            <q-img
+              src="https://via.placeholder.com/150x150?text=Edifeeds"
+              contain
+              class="logo q-mb-lg"
+              :class="{ 'logo-dark': isDark }"
+              style="max-width: 200px;"
+            />
+          </transition>
+
+          <!-- Animated Title -->
+          <transition
+            appear
+            enter-active-class="animated fadeInUp"
+            :duration="1000"
+          >
+            <div class="title-container text-center q-mb-md">
+              <div class="text-h4 text-primary title-text">
+                Your Daily Source of
               </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </transition>
+              <div class="text-h3 text-accent animated-gradient-text">
+                Christian Inspiration
+              </div>
+            </div>
+          </transition>
 
-      <!-- Action Buttons -->
-      <transition
-        appear
-        enter-active-class="animated fadeInUp"
-        :duration="1600"
-      >
-        <div class="button-container">
-          <q-btn
-            label="Get Started"
-            color="primary"
-            size="lg"
-            class="action-btn primary-btn q-mb-md"
-            :loading="isLoading.register"
-            @click="goToRegister"
-            no-caps
-            rounded
+          <!-- Subtitle with Typing Effect -->
+          <transition
+            appear
+            enter-active-class="animated fadeIn"
+            :duration="1200"
           >
-            <template v-if="!isLoading.register" v-slot:append>
-              <q-icon name="arrow_forward" />
-            </template>
-          </q-btn>
+            <div class="text-subtitle1 text-grey-7 text-center q-mb-xl subtitle-text">
+              {{ displayedText }}
+              <span class="cursor" :class="{ 'blink': showCursor }">|</span>
+            </div>
+          </transition>
 
-          <q-btn
-            label="Login"
-            color="primary"
-            size="lg"
-            outline
-            class="action-btn secondary-btn"
-            :loading="isLoading.login"
-            @click="goToLogin"
-            no-caps
-            rounded
+          <!-- Feature Cards -->
+          <transition
+            appear
+            enter-active-class="animated fadeInUp"
+            :duration="1400"
           >
-            <template v-if="!isLoading.login" v-slot:append>
-              <q-icon name="login" />
-            </template>
-          </q-btn>
+            <div class="feature-grid q-mb-xl">
+              <q-card
+                v-for="(feature, index) in features"
+                :key="index"
+                class="feature-card"
+                flat
+                bordered
+                :class="{ 'feature-card-dark': isDark }"
+              >
+                <q-card-section class="text-center">
+                  <q-icon
+                    :name="feature.icon"
+                    size="2rem"
+                    :color="feature.color"
+                    class="q-mb-sm"
+                  />
+                  <div class="text-subtitle2 text-weight-medium">
+                    {{ feature.title }}
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
+          </transition>
+
+          <!-- Action Buttons -->
+          <transition
+            appear
+            enter-active-class="animated fadeInUp"
+            :duration="1600"
+          >
+            <div class="button-container">
+              <q-btn
+                label="Get Started"
+                color="primary"
+                size="lg"
+                class="action-btn primary-btn q-mb-md"
+                :loading="isLoading.register"
+                @click="goToRegister"
+                no-caps
+                rounded
+              >
+                <template v-if="!isLoading.register" v-slot:append>
+                  <q-icon name="arrow_forward" />
+                </template>
+              </q-btn>
+
+              <q-btn
+                label="Login"
+                color="primary"
+                size="lg"
+                outline
+                class="action-btn secondary-btn"
+                :loading="isLoading.login"
+                @click="goToLogin"
+                no-caps
+                rounded
+              >
+                <template v-if="!isLoading.login" v-slot:append>
+                  <q-icon name="login" />
+                </template>
+              </q-btn>
+            </div>
+          </transition>
         </div>
-      </transition>
-    </div>
 
-    <!-- Settings Panel -->
-    <div class="settings-panel absolute-top-right q-pa-md">
-      <q-btn
-        round
-        flat
-        :icon="showSettings ? 'close' : 'settings'"
-        color="primary"
-        @click="showSettings = !showSettings"
-        class="settings-toggle"
-      />
-
-      <transition
-        enter-active-class="animated slideInRight"
-        leave-active-class="animated slideOutRight"
-      >
-        <q-card
-          v-if="showSettings"
-          class="settings-card q-pa-md q-mt-sm"
-          :class="{ 'settings-card-dark': isDark }"
-        >
-          <div class="text-subtitle2 q-mb-md">Theme</div>
-          <q-toggle
-            v-model="isDark"
-            checked-icon="dark_mode"
-            unchecked-icon="light_mode"
+        <!-- Settings Panel -->
+        <div class="settings-panel absolute-top-right q-pa-md">
+          <q-btn
+            round
+            flat
+            :icon="showSettings ? 'close' : 'settings'"
             color="primary"
-            label="Dark Mode"
-            @update:model-value="toggleDarkMode"
+            @click="showSettings = !showSettings"
+            class="settings-toggle"
           />
 
-          <div class="text-subtitle2 q-mb-md q-mt-md">Animation</div>
-          <q-toggle
-            v-model="animationsEnabled"
-            icon="animation"
-            color="primary"
-            label="Enable Animations"
-            @update:model-value="toggleAnimations"
-          />
-        </q-card>
-      </transition>
-    </div>
+          <transition
+            enter-active-class="animated slideInRight"
+            leave-active-class="animated slideOutRight"
+          >
+            <q-card
+              v-if="showSettings"
+              class="settings-card q-pa-md q-mt-sm"
+              :class="{ 'settings-card-dark': isDark }"
+            >
+              <div class="text-subtitle2 q-mb-md">Theme</div>
+              <q-toggle
+                v-model="isDark"
+                checked-icon="dark_mode"
+                unchecked-icon="light_mode"
+                color="primary"
+                label="Dark Mode"
+                @update:model-value="toggleDarkMode"
+              />
 
-    <!-- Loading Overlay -->
-    <q-inner-loading :showing="isInitialLoading">
-      <q-spinner-gears size="50px" color="primary" />
-      <div class="text-primary q-mt-md">Loading Inspiration...</div>
-    </q-inner-loading>
-  </q-page>
+              <div class="text-subtitle2 q-mb-md q-mt-md">Animation</div>
+              <q-toggle
+                v-model="animationsEnabled"
+                icon="animation"
+                color="primary"
+                label="Enable Animations"
+                @update:model-value="toggleAnimations"
+              />
+            </q-card>
+          </transition>
+        </div>
+
+        <!-- Loading Overlay -->
+        <q-inner-loading :showing="isInitialLoading">
+          <q-spinner-gears size="50px" color="primary" />
+          <div class="text-primary q-mt-md">Loading Inspiration...</div>
+        </q-inner-loading>
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script setup>

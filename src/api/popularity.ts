@@ -1,6 +1,6 @@
 import { BaseMedia } from '../utils/types'
-import { getContent } from './mediaApi'
-import { youtubeVideos } from './Resources'
+import { mediaClient } from './mediaApi'
+import { callBack } from './Resources'
 
 export function calculatePopularity(item: BaseMedia): number {
   // External signals
@@ -34,19 +34,27 @@ export function calculatePopularity(item: BaseMedia): number {
   return popularityScore * recencyBoost
 }
 
-export async function getPopularMediaItems(limit = 5): Promise<BaseMedia[]> {
-  const youtubeItems = await getContent(youtubeVideos)
+export async function getPopularItems(limit = 5): Promise<any> {
+  //const youtubeItems = await getContent(youtubeVideos)
+console.log("CALLBACK: ", callBack)
+  const { videos, books, quote, music } = await mediaClient.post(callBack);
+const allSorted = {};
 
-  // Combine with books, quotes, etc. later
-  const allItems = youtubeItems
+const mediaItems = { videos, books, quote, music };
 
-  const sorted = allItems
+Object.keys(mediaItems).forEach(key => {
+  const items = mediaItems[key] || [];
+
+  allSorted[key] = items
     .map(item => ({
       ...item,
       popularityScore: calculatePopularity(item),
     }))
     .sort((a, b) => b.popularityScore - a.popularityScore)
-    .slice(0, limit)
+    .slice(0, limit);
+});
 
-  return sorted
+console.log(allSorted);
+
+  return allSorted
 }

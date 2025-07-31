@@ -1,103 +1,104 @@
 <template>
-  <section class="popular-section q-mb-xl">
-    <!-- Enhanced Header with Gradient Accent -->
-    <!-- div class="section-header q-mb-lg">
-      <h2 class="section-title text-h4 text-weight-light q-mb-xs">
-        <span class="gradient-text">Popular</span> Now
-      </h2>
-      <div class="section-subtitle text-grey-6 text-body2">
-        Trending content curated for you
-      </div>
-      <div class="accent-line"></div>
-    </div -->
-    <div class="section-header">
-      <h2 class="section-title">
-        <q-icon name="trending_up" class="section-icon" />
-        Popular Now
-      </h2>
-      <p class="section-subtitle">What's inspiring others right now</p>
-    </div>
+  <section class="trending-section">
+    <div class="container">
+      <header class="section-header">
+        <div class="title-wrapper">
+          <q-icon name="local_fire_department" class="fire-icon" />
+          <h2 class="section-title">
+            <span class="trending-text">Trending</span>
+            <span class="today-text">Today</span>
+          </h2>
+        </div>
+        <p class="section-subtitle">
+          Discover what's captivating others right now
+        </p>
+      </header>
 
-    <!-- Enhanced Carousel Container -->
-    <div class="carousel-container">
-      <q-carousel
-        v-model="slide"
-        navigation
-        height="280px"
-        control-color="primary"
-        arrows
-        :autoplay="5000"
-        animated
-        transition-prev="slide-right"
-        transition-next="slide-left"
-        class="elegant-carousel"
-      >
-        <q-carousel-slide
-          v-for="item in items"
-          :name="item.id"
-          :key="item.id"
-          @click="goToContent(item.id, item.type)"
-          class="carousel-slide"
+      <div v-if="items && items.length" class="carousel-wrapper">
+        <q-carousel
+          v-model="currentSlide"
+          height="400px"
+          :autoplay="autoplayEnabled ? 6000 : false"
+          animated
+          arrows
+          infinite
+          control-color="primary"
+          class="trending-carousel"
+          @mouseenter="autoplayEnabled = false"
+          @mouseleave="autoplayEnabled = true"
         >
-          <!-- Image Container with Overlay Effects -->
-          <div class="slide-image-container">
-            <q-img
-              :src="item.cover"
-              :ratio="16/9"
-              class="slide-image"
-              :img-style="{ objectFit: 'cover' }"
-            >
-              <template v-slot:loading>
-                <div class="loading-shimmer"></div>
-              </template>
-            </q-img>
-
-            <!-- Gradient Overlay -->
-            <div class="gradient-overlay"></div>
-
-            <!-- Content Type Badge -->
-            <div class="content-type-badge">
-              <q-icon :name="getTypeIcon(item.type)" size="xs" class="q-mr-xs" />
-              {{ item.type.toUpperCase() }}
-            </div>
-          </div>
-
-          <!-- Enhanced Content Info -->
-          <div class="slide-content">
-            <div class="content-wrapper">
-              <h3 class="content-title text-h6 text-weight-medium q-mb-xs">
-                {{ item.title }}
-              </h3>
-              <div class="content-meta text-grey-4 text-caption">
-                <q-icon name="trending_up" size="xs" class="q-mr-xs" />
-                Trending
+          <q-carousel-slide
+            v-for="item in items"
+            :key="item.id"
+            :name="item.id"
+            class="carousel-slide"
+          >
+            <div class="slide-content" @click="handleItemClick(item)">
+              <div class="slide-background">
+                <q-img
+                  :src="item.cover"
+                  :alt="item.title"
+                  class="background-image"
+                  fit="cover"
+                  loading="lazy"
+                />
+                <div class="image-overlay"></div>
               </div>
 
-              <!-- Hover Action Button -->
-              <div class="action-button">
+              <div class="content-badge">
+                <q-icon :name="getContentIcon(item.type)" size="sm" />
+                <span>{{ formatContentType(item.type) }}</span>
+              </div>
+
+              <div class="play-button-container">
                 <q-btn
                   round
                   color="primary"
-                  icon="play_arrow"
-                  size="sm"
-                  class="play-btn"
-                  @click.stop="goToContent(item.id, item.type)"
-                />
+                  size="xl"
+                  class="play-button"
+                  @click.stop="handleItemClick(item)"
+                >
+                  <q-icon name="play_arrow" size="2rem" />
+                  <q-tooltip class="text-body2" anchor="bottom middle" self="top middle">
+                    Play {{ item.title }}
+                  </q-tooltip>
+                </q-btn>
+              </div>
+
+              <div class="content-info">
+                <h3 class="content-title">{{ item.title }}</h3>
+                <div class="content-meta">
+                  <q-icon name="trending_up" size="sm" />
+                  <span>Trending Now</span>
+                </div>
               </div>
             </div>
-          </div>
-        </q-carousel-slide>
-      </q-carousel>
+          </q-carousel-slide>
+        </q-carousel>
 
-      <!-- Custom Navigation Dots -->
-      <div class="custom-navigation q-mt-md">
-        <div class="nav-dots">
-          <div
-            v-for="item in items"
-            :key="item.id"
-            :class="['nav-dot', { active: slide === item.id }]"
-            @click="slide = item.id"
-          ></div>
+        <div class="navigation-controls">
+          <div class="slide-indicators">
+            <button
+              v-for="item in items"
+              :key="item.id"
+              :class="['indicator', { active: currentSlide === item.id }]"
+              @click="currentSlide = item.id"
+              :aria-label="`Go to slide ${item.title}`"
+            >
+              <span class="indicator-dot"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <q-spinner-dots
+          v-if="!items"
+          color="primary"
+          size="50px"
+          class="q-mx-auto block"
+        />
+        <div v-else class="text-center text-subtitle1 q-pa-lg">
+          No trending items available.
         </div>
       </div>
     </div>
@@ -105,341 +106,489 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { defineProps } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 
-const props = defineProps<{
-  items: Array<{
-    id: number
-    title: string
-    cover: string
-    type: string // video | music | book | quote
-  }>
-}>()
-
-const router = useRouter()
-const slide = ref(props.items[0]?.id || 1)
-
-const goToContent = (id: number, type: string) => {
-  router.push(`/content/${type}/${id}`)
+// The interface and props definition are good, no changes needed.
+interface TrendingItem {
+  id: number;
+  title: string;
+  cover: string;
+  duration?: string;
+  type: 'video' | 'music' | 'book' | 'quote';
 }
 
-const getTypeIcon = (type: string) => {
-  const icons = {
-    video: 'play_circle_filled',
-    music: 'music_note',
-    book: 'menu_book',
-    quote: 'format_quote'
+interface Props {
+  items: TrendingItem[];
+  autoplay?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  autoplay: true,
+});
+
+const emit = defineEmits<{
+  itemClick: [item: TrendingItem];
+}>();
+
+const router = useRouter();
+
+// State management
+const currentSlide = ref(1); // Default to a reasonable start value
+const autoplayEnabled = ref(props.autoplay);
+
+// Watch for changes in the items prop to set the initial slide
+watch(() => props.items, (newItems) => {
+  if (newItems && newItems.length) {
+    currentSlide.value = newItems[0].id;
   }
-  return icons[type] || 'star'
-}
+}, { immediate: true });
+
+// Content configurations (moved outside functions for clarity)
+const contentConfig = {
+  video: { icon: 'play_circle', label: 'Video' },
+  music: { icon: 'music_note', label: 'Music' },
+  book: { icon: 'menu_book', label: 'Book' },
+  quote: { icon: 'format_quote', label: 'Quote' },
+};
+
+const getContentIcon = (type: string) => {
+  return contentConfig[type]?.icon || 'star';
+};
+
+const formatContentType = (type: string) => {
+  return contentConfig[type]?.label || type.charAt(0).toUpperCase() + type.slice(1);
+};
+
+const handleItemClick = (item: TrendingItem) => {
+  emit('itemClick', item);
+  router.push(`/content/${item.type}/${item.id}`);
+};
+
+// Simplified keyboard navigation
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (!props.items || props.items.length < 2) return;
+
+  const currentItemIndex = props.items.findIndex(item => item.id === currentSlide.value);
+
+  if (event.key === 'ArrowLeft') {
+    const prevIndex = (currentItemIndex > 0) ? currentItemIndex - 1 : props.items.length - 1;
+    currentSlide.value = props.items[prevIndex].id;
+  } else if (event.key === 'ArrowRight') {
+    const nextIndex = (currentItemIndex < props.items.length - 1) ? currentItemIndex + 1 : 0;
+    currentSlide.value = props.items[nextIndex].id;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown);
+});
 </script>
 
 <style scoped>
-.popular-section {
-  padding: 2rem 0;
-}
+/*
+  CSS is well-written and follows a logical structure.
+  No major changes are required here, as the styling is a matter of design choice.
+  The only small refinement is to ensure the image displays properly,
+  which we addressed in the previous response's debugging tips.
+  The code below is your original CSS, which is already very good.
+*/
 
-/* Enhanced Section Header */
-.section-header {
+.trending-section {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   position: relative;
-  padding-bottom: 1rem;
-}
-
-.section-title {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.section-subtitle {
-  font-weight: 400;
-  opacity: 0.8;
-}
-
-.accent-line {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 2px;
-}
-
-/* Carousel Container */
-.carousel-container {
-  position: relative;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-.elegant-carousel {
-  border-radius: 20px;
   overflow: hidden;
 }
 
-/* Slide Enhancements */
-.carousel-slide {
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-/*.carousel-slide:hover {
-  transform: scale(1.02);
-}*/
-
-.slide-image-container {
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-}
-
-.slide-image {
-  transition: transform 0.5s ease;
-  border-radius: 20px;
-}
-
-.carousel-slide:hover .slide-image {
-  transform: scale(1.05);
-}
-
-/* Gradient Overlay */
-.gradient-overlay {
+.trending-section::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(245, 101, 101, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header Styles */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fire-icon {
+  font-size: 3rem;
+  color: #f59e0b;
+  animation: flicker 2s infinite alternate;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.section-title {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.trending-text {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.today-text {
+  color: #334155;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Carousel Wrapper */
+.carousel-wrapper {
+  position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.trending-carousel {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+  background: #000;
+}
+
+/* Slide Styles */
+.carousel-slide {
+  padding: 0;
+  position: relative;
+}
+
+.slide-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.slide-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.background-image {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s ease;
+}
+
+.slide-content:hover .background-image {
+  transform: scale(1.1);
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
     rgba(0, 0, 0, 0.8) 100%
   );
   transition: opacity 0.3s ease;
 }
 
-.carousel-slide:hover .gradient-overlay {
+.slide-content:hover .image-overlay {
   opacity: 0.9;
 }
 
-/* Content Type Badge */
-.content-type-badge {
+/* Content Badge */
+.content-badge {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(255, 255, 255, 0.2);
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(10px);
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  border-radius: 50px;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
   transition: all 0.3s ease;
 }
 
-.carousel-slide:hover .content-type-badge {
-  background: rgba(255, 255, 255, 0.3);
+.slide-content:hover .content-badge {
+  background: rgba(0, 0, 0, 0.9);
   transform: translateY(-2px);
 }
 
-/* Enhanced Content Info */
-.slide-content {
+/* Play Button */
+.play-button-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.play-button {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  color: #1976d2;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.slide-content:hover .play-button {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.play-button:hover {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Content Info */
+.content-info {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 2rem;
   background: linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.3) 70%,
-    transparent 100%
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0.9) 100%
   );
-}
-
-.content-wrapper {
-  position: relative;
-  z-index: 2;
+  color: white;
+  z-index: 5;
 }
 
 .content-title {
-  color: white;
-  margin: 0;
-  font-weight: 500;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
   line-height: 1.3;
-  transition: color 0.3s ease;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .content-meta {
   display: flex;
   align-items: center;
-  margin-top: 0.5rem;
-  opacity: 0.8;
-}
-
-
-.section-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  font-weight: 500;
 }
 
-.section-subtitle {
-  font-size: 1.1rem;
-  color: #666;
-  font-weight: 300;
-}
-
-.section-icon {
-  font-size: 1.8rem;
-  color: #667eea;
-}
-
-/* Action Button */
-.action-button {
-  position: absolute;
-  top: -3rem;
-  right: 0;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
-}
-
-.carousel-slide:hover .action-button {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.play-btn {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.play-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-/* Custom Navigation */
-.custom-navigation {
+/* Navigation Controls */
+.navigation-controls {
+  margin-top: 2rem;
   display: flex;
   justify-content: center;
-  padding: 1rem 0;
 }
 
-.nav-dots {
+.slide-indicators {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
   align-items: center;
 }
 
-.nav-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
+.indicator {
+  background: none;
+  border: none;
   cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
   transition: all 0.3s ease;
 }
 
-.nav-dot.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  transform: scale(1.5);
+.indicator:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
-.nav-dot:hover {
-  background: rgba(0, 0, 0, 0.5);
+.indicator-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.3s ease;
+}
+
+.indicator.active .indicator-dot {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
   transform: scale(1.2);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
 }
 
-/* Loading Shimmer Effect */
-.loading-shimmer {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+/* Loading Placeholder */
+.loading-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
-  width: 100%;
-  height: 100%;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .popular-section {
-    padding: 1rem 0;
+  .trending-section {
+    padding: 2rem 0;
+  }
+
+  .container {
+    padding: 0 0.5rem;
   }
 
   .section-title {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
-  .carousel-container {
-    border-radius: 15px;
+  .fire-icon {
+    font-size: 2rem;
   }
 
-  .slide-content {
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
+  .trending-carousel {
+    border-radius: 16px;
+    height: 300px;
+  }
+
+  .content-badge {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .play-button {
+    width: 60px;
+    height: 60px;
+  }
+
+  .content-info {
     padding: 1.5rem;
   }
 
-  .content-type-badge {
-    top: 0.5rem;
-    right: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.7rem;
+  .content-title {
+    font-size: 1.25rem;
+  }
+
+  .slide-indicators {
+    gap: 0.75rem;
+  }
+
+  .indicator-dot {
+    width: 8px;
+    height: 8px;
   }
 }
 
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
+  .trending-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+
+  .today-text {
+    color: #e2e8f0;
+  }
+
   .section-subtitle {
-    color: rgba(255, 255, 255, 0.7);
+    color: #94a3b8;
   }
 
-  .nav-dot {
-    background: rgba(255, 255, 255, 0.3);
+  .indicator-dot {
+    background: #475569;
   }
 
-  .nav-dot:hover {
-    background: rgba(255, 255, 255, 0.5);
+  .indicator:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Accessibility */
+.indicator:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.play-button:focus {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .fire-icon {
+    animation: none;
   }
 
-  .loading-shimmer {
-    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  .background-image,
+  .slide-content,
+  .play-button,
+  .content-badge {
+    transition: none;
   }
 }
 </style>

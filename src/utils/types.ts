@@ -136,6 +136,7 @@ export interface BaseMedia {
   saves: number;
   shares?: number
 }
+
 export interface Quote extends BaseMedia {
   type: 'Quote';
   // Quotes may be short so duration is not needed
@@ -177,3 +178,19 @@ export interface Article extends BaseMedia {
   type: 'Article';
   // Optionally add extra fields later (e.g., source)
 }
+
+export type QuietTime = {
+  date: string
+  verse: {
+    text: string
+    reference: string
+  }
+  reflection: string
+  worshipTrack: {
+    title: string
+    link: string
+    thumbnail: string
+  }
+  prayer: string
+}
+
