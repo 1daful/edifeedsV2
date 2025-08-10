@@ -172,7 +172,7 @@
         <q-btn
           flat
           color="primary"
-          @click="handleBack"
+          @click="$emit('back')"
           label="Back"
           icon="chevron_left"
           v-if="!hideBackButton"
@@ -224,35 +224,35 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { ContentItem } from '../../utils/types'
 
 const $q = useQuasar()
 
-// Define emits first
-const emit = defineEmits(['next', 'back', 'assigned', 'error', 'skip', 'selection-changed'])
-
-// Props with better defaults and validation
 const props = defineProps({
-  topic: {
-    type: Object,
-    required: true,
-    validator: (topic: any) => topic && typeof topic.title === 'string'
-  },
+  // Step props
+
+  // Component props
+  topic: { type: Object, required: true },
   excludeAssigned: { type: Boolean, default: false },
   apiEndpoint: { type: String, default: '/api/contents' },
+
+  // Navigation props
   hideBackButton: { type: Boolean, default: false },
   allowSkip: { type: Boolean, default: false },
   nextButtonLabel: { type: String, default: 'Assign & Continue' },
   nextButtonIcon: { type: String, default: 'assignment' },
-  autoLoad: { type: Boolean, default: true },
-  // New props to better integrate with parent
-  initialSelection: { type: Array, default: () => [] },
-  enableAutoAssign: { type: Boolean, default: true }
+
+  // Auto-load
+  autoLoad: { type: Boolean, default: true }
 })
+
+const emit = defineEmits(['next', 'back', 'assigned', 'error', 'skip'])
 
 // Reactive state
 const filterType = ref(null)
@@ -260,11 +260,14 @@ const search = ref('')
 const loading = ref(false)
 const assigning = ref(false)
 
-const contents = ref<any[]>([])
-const selected = ref<any[]>([])
+const contents = ref<ContentItem[]>([])
+const selected = ref([])
 const showTypeSelector = ref(false)
 const selectedTypes = ref([])
 const totalItems = ref(0)
+
+// Step completion state
+const isDone = computed(() => selected.value.length > 0)
 
 // Type configuration with enhanced metadata
 const typeConfig = {
@@ -369,15 +372,6 @@ const enhancedColumns = [
   }
 ]
 
-// Watch for selection changes and emit to parent
-watch(selected, (newSelection) => {
-  emit('selection-changed', {
-    selected: newSelection,
-    count: newSelection.length,
-    topic: props.topic
-  })
-}, { deep: true })
-
 // Enhanced methods
 async function fetchContents() {
   loading.value = true
@@ -441,13 +435,7 @@ async function fetchContents() {
 
     contents.value = mockData
     totalItems.value = mockData.length
-
-    // Set initial selection if provided
-    if (props.initialSelection.length > 0) {
-      selected.value = contents.value.filter(content =>
-        props.initialSelection.some(initial => initial.id === content.id)
-      )
-    }
+    applyFilters()
 
   } catch (error) {
     console.error('Error fetching contents:', error)
@@ -462,21 +450,12 @@ async function fetchContents() {
   }
 }
 
-function handleBack() {
-  emit('back')
-}
-
 async function handleNext() {
   if (selected.value.length > 0) {
-    if (props.enableAutoAssign) {
-      await assign()
-    } else {
-      // Just emit the next event with selection data
-      emit('next', {
-        selected: selected.value,
-        topic: props.topic
-      })
-    }
+    await assign()
+    if (currentStep.value < 3) {
+    currentStep.value++;
+  }
   } else if (props.allowSkip) {
     skip()
   }
@@ -484,8 +463,10 @@ async function handleNext() {
 
 function skip() {
   emit('skip', {
-    topic: props.topic
+    stepName: props.stepName,
+    topicId: props.topic.id
   })
+  emit('next')
 }
 
 async function assign() {
@@ -518,11 +499,7 @@ async function assign() {
       position: 'top'
     })
 
-    emit('next', {
-      assigned: true,
-      selected: selected.value,
-      topic: props.topic
-    })
+    emit('next')
 
   } catch (error) {
     console.error('Error assigning contents:', error)
@@ -538,19 +515,19 @@ async function assign() {
 }
 
 // Utility functions
-function getTypeColor(type: string) {
+function getTypeColor(type) {
   return typeConfig[type]?.color || 'grey'
 }
 
-function getTypeIcon(type: string) {
+function getTypeIcon(type) {
   return typeConfig[type]?.icon || 'help'
 }
 
-function isSelected(row: any) {
+function isSelected(row) {
   return selected.value.some(item => item.id === row.id)
 }
 
-function toggleSelection(row: any) {
+function toggleSelection(row) {
   const index = selected.value.findIndex(item => item.id === row.id)
   if (index > -1) {
     selected.value.splice(index, 1)
@@ -586,28 +563,12 @@ function onSearchChange() {
   // This function can be used for additional search logic if needed
 }
 
-// Public methods for parent component
-function getSelectedItems() {
-  return selected.value
-}
-
-function setSelectedItems(items: any[]) {
-  selected.value = items
-}
-
-function hasSelection() {
-  return selected.value.length > 0
-}
-
 // Expose methods for parent component
 defineExpose({
   fetchContents,
   clearSelection,
   selectAll,
-  getSelected: getSelectedItems,
-  setSelected: setSelectedItems,
-  hasSelection,
-  getSelectedItems
+  getSelected: () => selected.value
 })
 
 // Initialize

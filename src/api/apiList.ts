@@ -1,4 +1,4 @@
-import { Api, EAuth, Repository, SDKClient, SupabaseDb, SupabaseRepo } from "@edifiles/services";
+import { Api, EAuth, EdiStorage, SDKClient, SupabaseDb, SupabaseRepo } from "@edifiles/services";
 /*export const youtube = new RestClient({
   baseUrl: "https://www.googleapis.com/youtube/v3",
   baseConfig: {
@@ -25,11 +25,15 @@ export const dailymotion: Api = new Api({
   params: {}
 })
 
-export const bibleApi: Api = new Api({
+export const apiBible: Api = new Api({
   endPoint: 'https://api.scripture.api.bible/v1/bibles',
   params: {
-    key: import.meta.env.VITE_BIBLE_API_KEY
+    'api-key': import.meta.env.VITE_BIBLE_API_KEY
   }
+})
+
+export const bibleApi: Api = new Api({
+  endPoint: 'https://bible-api.com/'
 })
 
 const supabaseConfig = {

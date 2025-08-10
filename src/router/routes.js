@@ -11,6 +11,7 @@ const routes = [
       { path: '/create-content', name: 'create', component: () => import('pages/CreatePage.vue') },
       { path: '/create', name: 'content-create', component: () => import('pages/Create.vue') },
       { path: '/content', name: 'content', component: () => import('pages/Content.vue') },
+      { path: '/media', name: 'media', component: () => import('src/pages/MediaPage.vue') },
       { path: '/search', name: 'search', component: () => import('pages/SearchPage.vue') },
       { path: '/events', name: 'events', component: () => import('pages/Events.vue') },
       { path: '/settings', name: 'settings', component: () => import('pages/SettingPage.vue') },

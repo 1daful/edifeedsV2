@@ -6,7 +6,7 @@ export async function addFiles(files: File[]) {
 
   const fileName = `${Date.now()}_${file.name}`;
   const { data, error } = await supabase.storage
-    .from('avatars') // use your Supabase storage bucket name here
+    .from('avatars')
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: true,

@@ -22,33 +22,46 @@
         :header-nav="currentStep > 1"
       >
         <q-form ref="basicForm" class="q-gutter-md">
-          <!-- Content Type Selection -->
-          <q-select
-            filled
-            v-model="form.type"
-            :options="mediaTypeOptions"
-            option-label="label"
-            option-value="value"
-            emit-value
-            map-options
-            label="Content Type"
-            :rules="[val => !!val || 'Content type is required']"
-          >
-            <template v-slot:option="scope">
-              <q-item v-bind="scope.itemProps">
-                <q-item-section avatar>
-                  <q-icon :name="scope.opt.icon" :color="scope.opt.color" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
-                  <q-item-label caption>{{ scope.opt.description }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </template>
-            <template v-slot:prepend>
-              <q-icon :name="getContentIcon(form.type)" :color="getContentColor(form.type)" />
-            </template>
-          </q-select>
+          <div class="row q-gutter-md">
+            <div class="col-12 col-md-6 example-section q-mb-xl">
+              <div class="text-h6 q-mb-md">Custom Tags Input</div>
+              <div class="tags-input-container">
+                <div class="tags-display q-mb-sm" v-if="tags2.length">
+                  <q-chip
+                    v-for="(tag, index) in tags2"
+                    :key="index"
+                    removable
+                    @remove="removeTag(index)"
+                    color="primary"
+                    text-color="white"
+                    :label="tag"
+                    icon="local_offer"
+                  />
+                </div>
+                <q-input
+                  filled
+                  v-model="tagInput"
+                  label="Add tags"
+                  hint="Press Enter or Add button to add tags"
+                  @keydown.enter.prevent="addTag"
+                  @keydown.comma.prevent="addTag"
+                  @keydown.tab.prevent="addTag"
+                >
+                  <template v-slot:append>
+                    <q-btn
+                      round
+                      dense
+                      flat
+                      icon="add"
+                      @click="addTag"
+                      :disable="!tagInput.trim()"
+                    />
+                  </template>
+                </q-input>
+              </div>
+              <div class="q-mt-sm text-caption">Tags: {{ tags2 }}</div>
+            </div>
+          </div>
 
           <q-input
             filled
@@ -69,7 +82,7 @@
 
           <q-input
             filled
-            v-model="form.description"
+            v-model="form.note"
             type="textarea"
             label="Description"
             :rules="[
@@ -82,107 +95,17 @@
             hint="Provide a meaningful description of the content"
           />
 
-          <q-input
-            filled
-            v-model="form.author"
-            label="Author / Minister"
-            :rules="[val => !!val || 'Author is required']"
-          >
-            <template v-slot:append>
-              <q-icon name="person" />
-            </template>
-          </q-input>
-
-          <q-input
-            filled
-            v-model="form.link"
-            label="Source Link (optional)"
-            hint="External URL for the content"
-          >
-            <template v-slot:append>
-              <q-icon name="link" />
-            </template>
-          </q-input>
-
-          <!-- Thumbnail Upload Section -->
-          <div class="thumbnail-section">
-            <div class="text-subtitle2 q-mb-sm">Thumbnail Image</div>
-            <div class="row q-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input
-                  filled
-                  v-model="form.thumbnail"
-                  label="Thumbnail URL"
-                  hint="Or upload an image below"
-                >
-                  <template v-slot:append>
-                    <q-icon name="image" />
-                  </template>
-                </q-input>
-
-                <q-uploader
-                  class="q-mt-sm"
-                  label="Upload thumbnail image"
-                  accept="image/*"
-                  :auto-upload="false"
-                  :hide-upload-btn="true"
-                  @added="onFileAdded"
-                  style="max-width: 100%"
-                />
-              </div>
-              <div class="col-12 col-md-6" v-if="form.thumbnail">
-                <q-img
-                  :src="form.thumbnail"
-                  class="rounded-borders"
-                  style="max-width: 200px; max-height: 150px;"
-                  :ratio="16/9"
-                  fit="cover"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Tags Input Section -->
-          <div class="tags-section">
-            <div class="text-subtitle2 q-mb-sm">Tags</div>
-            <div class="tags-input-container">
-              <div class="tags-display q-mb-sm" v-if="tags.length">
-                <q-chip
-                  v-for="(tag, index) in tags"
-                  :key="index"
-                  removable
-                  @remove="removeTag(index)"
-                  color="primary"
-                  text-color="white"
-                  :label="tag"
-                  icon="local_offer"
-                />
-              </div>
-              <q-input
-                filled
-                v-model="tagInput"
-                label="Add tags"
-                hint="Press Enter, comma, or tab to add tags"
-                @keydown.enter.prevent="addTag"
-                @keydown.comma.prevent="addTag"
-                @keydown.tab.prevent="addTag"
-              >
-                <template v-slot:append>
-                  <q-btn
-                    round
-                    dense
-                    flat
-                    icon="add"
-                    @click="addTag"
-                    :disable="!tagInput.trim()"
-                  />
-                </template>
-              </q-input>
-            </div>
-          </div>
-
-          <!-- Scripture References -->
-          <div class="scripture-section">
+          <div class="col-12">
+            <!--q-select
+              v-model="form.scripture"
+              label="Scripture References"
+              multiple
+              use-input
+              use-chips
+              new-value-mode="add-unique"
+              input-debounce="0"
+              hint="e.g., John 3:16, Romans 8:28"
+            /-->
             <ScriptureReference v-model="form.scripture" />
           </div>
         </q-form>
@@ -198,14 +121,14 @@
         </q-stepper-navigation>
       </q-step>
 
-      <!-- Step 2: Assign Content (if needed) -->
+      <!-- Step 2: Assign Content -->
       <q-step
         :name="2"
         title="Assign Content"
         icon="assignment"
         :done="currentStep > 2"
         :header-nav="currentStep > 2"
-        caption="Optional: Assign to existing topics"
+        caption="Select content to assign to topic"
       >
         <ContentAssignment
           ref="contentAssignmentRef"
@@ -236,31 +159,16 @@
             <q-card-section>
               <div class="row q-gutter-md">
                 <div class="col-12 col-md-8">
-                  <div class="review-item">
-                    <strong>Content Type:</strong>
-                    <q-chip
-                      :label="getContentTypeLabel(form.type)"
-                      :color="getContentColor(form.type)"
-                      text-color="white"
-                      :icon="getContentIcon(form.type)"
-                      class="q-ml-sm"
-                    />
-                  </div>
                   <div class="review-item"><strong>Title:</strong> {{ form.title }}</div>
-                  <div class="review-item"><strong>Author:</strong> {{ form.author }}</div>
                   <div class="review-item">
-                    <strong>Description:</strong>
-                    <div class="q-mt-sm">{{ form.description }}</div>
+                    <strong>Note:</strong>
+                    <div class="q-mt-sm">{{ form.note }}</div>
                   </div>
-                  <div class="review-item" v-if="form.link">
-                    <strong>Source Link:</strong>
-                    <a :href="form.link" target="_blank" class="q-ml-sm">{{ form.link }}</a>
-                  </div>
-                  <div class="review-item" v-if="tags.length">
+                  <div class="review-item" v-if="tags2.length">
                     <strong>Tags:</strong>
                     <div class="q-mt-sm">
                       <q-chip
-                        v-for="tag in tags"
+                        v-for="tag in tags2"
                         :key="tag"
                         :label="tag"
                         color="primary"
@@ -275,24 +183,25 @@
                     <div class="q-mt-sm">{{ form.scripture.join(', ') }}</div>
                   </div>
                   <div class="review-item" v-if="assignedContent.length">
-                    <strong>Assigned Topics:</strong>
+                    <strong>Assigned Content:</strong>
                     <div class="q-mt-sm">
                       <q-list dense>
                         <q-item v-for="content in assignedContent" :key="content.id" class="q-pa-xs">
                           <q-item-section avatar>
-                            <q-icon name="topic" color="primary" />
+                            <q-icon :name="getContentIcon(content.type)" :color="getContentColor(content.type)" />
                           </q-item-section>
                           <q-item-section>
                             <q-item-label>{{ content.title }}</q-item-label>
+                            <q-item-label caption>{{ content.type }} by {{ content.author }}</q-item-label>
                           </q-item-section>
                         </q-item>
                       </q-list>
                     </div>
                   </div>
                 </div>
-                <div class="col-12 col-md-4" v-if="form.thumbnail">
+                <div class="col-12 col-md-4" v-if="form.cover_image">
                   <q-img
-                    :src="form.thumbnail"
+                    :src="form.cover_image"
                     class="rounded-borders"
                     style="max-width: 200px;"
                     :ratio="16/9"
@@ -338,9 +247,10 @@
           <div class="text-h6">Content Submitted Successfully!</div>
         </q-card-section>
         <q-card-section>
-          <div>Your {{ getContentTypeLabel(form.type).toLowerCase() }} content has been submitted and is now available in the library.</div>
+          <div>Your content has been submitted and is now available in the library.</div>
           <div v-if="assignedContent.length" class="q-mt-sm">
-            Content has been assigned to <strong>{{ assignedContent.length }}</strong> topic{{ assignedContent.length > 1 ? 's' : '' }}.
+            <strong>{{ assignedContent.length }}</strong> content item{{ assignedContent.length > 1 ? 's' : '' }}
+            {{ assignedContent.length > 1 ? 'have' : 'has' }} been assigned to this topic.
           </div>
         </q-card-section>
         <q-card-actions align="right">
@@ -362,17 +272,14 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { QueryType, SupabaseRepo } from "@edifiles/services";
+import { ApiRequest } from "@edifiles/services";
 import { addFiles } from "../utils/storage";
-import { config } from "../../public/config";
+import { auth, dbClient } from '../api/apiList';
 import ContentAssignment from "../components/Admin/ContentAssignment.vue";
 import ScriptureReference from "../components/ScriptureReference.vue";
 
 const router = useRouter();
 const $q = useQuasar();
-
-// Repository setup
-const repo = new SupabaseRepo(config.supabase);
 
 // Reactive data
 const currentStep = ref(1);
@@ -388,97 +295,39 @@ const assignedContent = ref<any[]>([]);
 
 // Form data with validation
 const form = ref({
-  type: '',
   title: '',
-  description: '',
-  link: '',
-  thumbnail: '',
-  author: '',
-  topic: '',
+  note: '',
+  cover_image: '',
+  tags: [],
   scripture: [],
 });
 
-const tags = ref<string[]>([]);
+const tags2 = ref<string[]>([]);
 const tagInput = ref('');
-
-// Media type options with enhanced configuration
-const mediaTypeOptions = ref([
-  {
-    value: 'book',
-    label: 'Book',
-    icon: 'book',
-    color: 'brown',
-    description: 'Books, eBooks, and written publications'
-  },
-  {
-    value: 'video',
-    label: 'Video',
-    icon: 'play_circle',
-    color: 'red',
-    description: 'Video content, sermons, and tutorials'
-  },
-  {
-    value: 'song',
-    label: 'Music',
-    icon: 'music_note',
-    color: 'purple',
-    description: 'Songs, hymns, and musical content'
-  },
-  {
-    value: 'quote',
-    label: 'Quote',
-    icon: 'format_quote',
-    color: 'orange',
-    description: 'Inspirational quotes and sayings'
-  },
-  {
-    value: 'article',
-    label: 'Article',
-    icon: 'article',
-    color: 'blue',
-    description: 'Articles, blog posts, and written content'
-  },
-  {
-    value: 'podcast',
-    label: 'Podcast',
-    icon: 'podcast',
-    color: 'indigo',
-    description: 'Audio content and podcasts'
-  },
-  {
-    value: 'event',
-    label: 'Event',
-    icon: 'event',
-    color: 'green',
-    description: 'Events, conferences, and gatherings'
-  }
-]);
 
 // Content type configuration
 const contentTypeConfig = {
-  video: { color: 'red', icon: 'play_circle', label: 'Video' },
-  article: { color: 'blue', icon: 'article', label: 'Article' },
-  song: { color: 'purple', icon: 'music_note', label: 'Music' },
-  quote: { color: 'orange', icon: 'format_quote', label: 'Quote' },
-  event: { color: 'green', icon: 'event', label: 'Event' },
-  podcast: { color: 'indigo', icon: 'podcast', label: 'Podcast' },
-  book: { color: 'brown', icon: 'book', label: 'Book' }
+  video: { color: 'red', icon: 'play_circle' },
+  article: { color: 'blue', icon: 'article' },
+  music: { color: 'purple', icon: 'music_note' },
+  quote: { color: 'orange', icon: 'format_quote' },
+  event: { color: 'green', icon: 'event' },
+  podcast: { color: 'indigo', icon: 'podcast' },
+  book: { color: 'brown', icon: 'book' }
 };
 
-// Tag management functions
 function addTag() {
   const tag = tagInput.value.trim().toLowerCase();
-  if (tag && !tags.value.includes(tag)) {
-    tags.value.push(tag);
+  if (tag && !tags2.value.includes(tag)) {
+    tags2.value.push(tag);
     tagInput.value = '';
   }
 }
 
 function removeTag(index: number) {
-  tags.value.splice(index, 1);
+  tags2.value.splice(index, 1);
 }
 
-// Content type helper functions
 function getContentIcon(type: string): string {
   return contentTypeConfig[type]?.icon || 'help';
 }
@@ -487,42 +336,12 @@ function getContentColor(type: string): string {
   return contentTypeConfig[type]?.color || 'grey';
 }
 
-function getContentTypeLabel(type: string): string {
-  return contentTypeConfig[type]?.label || type;
-}
-
-// File upload handler
-async function onFileAdded(files: readonly File[]) {
-  try {
-    loading.value = true;
-    const result = await addFiles(Array.from(files));
-    form.value.thumbnail = result ?? '';
-
-    $q.notify({
-      type: 'positive',
-      message: 'Thumbnail uploaded successfully!',
-      position: 'top'
-    });
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to upload thumbnail.',
-      position: 'top'
-    });
-  } finally {
-    loading.value = false;
-  }
-}
-
 // Computed properties
 const isFormValid = computed(() => {
-  return form.value.type &&
-         form.value.title &&
-         form.value.description &&
-         form.value.author &&
+  return form.value.title &&
+         form.value.note &&
          form.value.title.length >= 3 &&
-         form.value.description.length >= 10;
+         form.value.note.length >= 10;
 });
 
 // Content Assignment Event Handlers
@@ -563,8 +382,8 @@ async function nextStep() {
     const valid = await basicForm.value?.validate();
     if (!valid) return;
 
-    // Update form topic with tags
-    form.value.topic = tags.value.join(', ');
+    // Update form tags before moving to next step
+    form.value.tags = [...tags2.value];
   }
 
   if (currentStep.value < 3) {
@@ -593,53 +412,75 @@ async function handleSubmit() {
   submitLoading.value = true;
 
   try {
-    // Prepare content data
-    const contentData = {
-      type: form.value.type,
+    // First, create the topic
+    const topicData = {
       title: form.value.title.trim(),
-      description: form.value.description.trim(),
-      link: form.value.link.trim() || null,
-      thumbnail: form.value.thumbnail.trim() || null,
-      author: form.value.author.trim(),
-      topic: tags.value.length > 0 ? tags.value.join(', ') : form.value.topic.trim(),
-      scripture: form.value.scripture.length > 0 ? form.value.scripture : null,
+      note: form.value.note.trim(),
+      cover_image: form.value.cover_image.trim() || null,
+      author_id: (await auth.getUser()).data.user?.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      tags: tags2.value.length > 0 ? tags2.value : null,
+      scripture: form.value.scripture.length > 0 ? form.value.scripture : null,
+      slug: slugify(form.value.title),
+      //contents: assignedContent.value
     };
 
-    const query: QueryType = {
-      name: form.value.type,
-      data: contentData
+    const topicQuery: ApiRequest = {
+      url: 'topics',
+      method: 'post',
+      data: topicData
     };
 
-    const response = await repo.post(query);
+    const topicResponse = await dbClient.post(topicQuery);
+    console.log('Topic creation response:', topicResponse);
 
-    if (response.ok) {
-      // Handle content assignments if any
-      if (assignedContent.value.length > 0) {
-        // Process assignments here if needed
-        console.log('Content assigned to topics:', assignedContent.value);
-      }
+    //const response = await dbClient.rpc('your_rpc_function_name', { param1: 'value1', param2: 'value2' });
 
-      showSuccessDialog.value = true;
-
-      $q.notify({
-        type: 'positive',
-        message: 'Content submitted successfully!',
-        position: 'top'
-      });
-
-      // Clear draft
-      localStorage.removeItem('content_draft');
-    } else {
-      throw new Error('Submission failed');
+    /*if (!topicResponse.ok) {
+      throw new Error(topicResponse.error || 'Failed to create topic');
     }
+
+    const createdTopic = topicResponse;
+    console.log('Topic created:', createdTopic);*/
+
+    // If there are assigned contents, create the assignments
+    if (assignedContent.value.length > 0) {
+      const contentIds = assignedContent.value.map(item => ({ content_type: item.type }));
+      console.log('Content IDs for assignment:', contentIds);
+      const assignmentQuery: ApiRequest = {
+        url: `topic_contents`,
+        method: 'post',
+        data: contentIds
+      };
+
+      const assignmentResponse = await dbClient.post(assignmentQuery);
+
+      /*if (!assignmentResponse.ok) {
+        console.warn('Failed to assign some content, but topic was created');
+        $q.notify({
+          type: 'warning',
+          message: 'Topic created but some content assignments failed ' + assignmentResponse,
+          position: 'top'
+        });
+      } else {
+        console.log('Content assigned successfully');
+      }*/
+    }
+
+    showSuccessDialog.value = true;
+
+    $q.notify({
+      type: 'positive',
+      message: 'Content topic created successfully!',
+      position: 'top'
+    });
 
   } catch (err) {
     console.error('Submission error:', err);
     $q.notify({
       type: 'negative',
-      message: 'Failed to submit content. Please try again.',
+      message: 'Failed to submit content. Please try again. ' + err,
       position: 'top',
       actions: [
         { label: 'Retry', color: 'white', handler: () => handleSubmit() }
@@ -650,20 +491,25 @@ async function handleSubmit() {
   }
 }
 
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\s\W-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 // Form reset and navigation
 function resetForm() {
   form.value = {
-    type: '',
     title: '',
-    description: '',
-    link: '',
-    thumbnail: '',
-    author: '',
-    topic: '',
-    scripture: []
+    note: '',
+    cover_image: '',
+    scripture: [],
+    tags: []
   };
-  tags.value = [];
-  tagInput.value = '';
+  tags2.value = [];
   assignedContent.value = [];
   currentStep.value = 1;
   showSuccessDialog.value = false;
@@ -677,7 +523,7 @@ function resetForm() {
 
 function goToLibrary() {
   showSuccessDialog.value = false;
-  router.push('/library');
+  router.push('/library'); // Adjust route as needed
 }
 
 // Auto-save functionality
@@ -686,10 +532,11 @@ let autoSaveTimer: NodeJS.Timeout;
 function startAutoSave() {
   clearTimeout(autoSaveTimer);
   autoSaveTimer = setTimeout(() => {
-    if (form.value.title || form.value.description) {
+    // Save to localStorage as draft
+    if (form.value.title || form.value.note) {
       const draftData = {
         ...form.value,
-        tags: tags.value,
+        tags: tags2.value,
         assignedContent: assignedContent.value,
         currentStep: currentStep.value
       };
@@ -704,7 +551,7 @@ onMounted(() => {
   if (draft) {
     try {
       const draftData = JSON.parse(draft);
-      if (draftData.title || draftData.description) {
+      if (draftData.title || draftData.note) {
         $q.dialog({
           title: 'Draft Found',
           message: 'Would you like to continue with your previous draft?',
@@ -712,16 +559,13 @@ onMounted(() => {
           persistent: true
         }).onOk(() => {
           form.value = {
-            type: draftData.type || '',
             title: draftData.title || '',
-            description: draftData.description || '',
-            link: draftData.link || '',
-            thumbnail: draftData.thumbnail || '',
-            author: draftData.author || '',
-            topic: draftData.topic || '',
-            scripture: draftData.scripture || []
+            note: draftData.note || '',
+            cover_image: draftData.cover_image || '',
+            scripture: draftData.scripture || [],
+            tags: draftData.tags || []
           };
-          tags.value = draftData.tags || [];
+          tags2.value = draftData.tags || [];
           assignedContent.value = draftData.assignedContent || [];
           if (draftData.currentStep && draftData.currentStep > 1) {
             currentStep.value = draftData.currentStep;
@@ -737,18 +581,21 @@ onMounted(() => {
 });
 
 // Watch form changes for auto-save
-watch([form, tags, assignedContent], startAutoSave, { deep: true });
+watch([form, tags2, assignedContent], startAutoSave, { deep: true });
 
 // Watch currentStep to handle step-specific logic
 watch(currentStep, (newStep, oldStep) => {
   console.log(`Step changed from ${oldStep} to ${newStep}`);
 
-  if (newStep === 2 && contentAssignmentRef.value) {
+  if (newStep === 2) {
     // Entering content assignment step
-    console.log('Entering content assignment with form data:', form.value);
+    // Ensure the ContentAssignment component has the latest topic data
+    if (contentAssignmentRef.value) {
+      // You could refresh content or do other setup here
+    }
   } else if (newStep === 3) {
     // Entering review step
-    console.log('Entering review step');
+    // Final validation or data preparation could go here
   }
 });
 </script>
@@ -772,14 +619,11 @@ watch(currentStep, (newStep, oldStep) => {
   color: #1976d2;
 }
 
-.tags-input-container,
-.thumbnail-section,
-.scripture-section {
+.tags-input-container {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 1rem;
   background: #fafafa;
-  margin-bottom: 1rem;
 }
 
 .tags-display {

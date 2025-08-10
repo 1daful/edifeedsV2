@@ -194,3 +194,42 @@ export type QuietTime = {
   prayer: string
 }
 
+export type Topic = {
+  id: string
+  title: string
+  note: string
+  slug: string
+  author: Author
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ContentItem {
+  id: number
+  title: string
+  type: string
+  author: string
+  description: string
+  status: string
+  duration?: string
+  readTime?: string
+  eventDate?: string
+  createdAt: string
+}
+
+export type Verse = {
+  book_id: string;
+  book_name: string;
+  chapter: number;
+  verse: number;
+  text: string;
+};
+
+export type BibleApiResponse = {
+  reference: string;
+  verses: Verse[];
+  text: string;
+  translation_id: string;
+  translation_name: string;
+  translation_note: string;
+};

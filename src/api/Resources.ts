@@ -1,4 +1,4 @@
-import { backEndApi, bibleApi, youtube } from "./apiList"
+import { apiBible, backEndApi, bibleApi, youtube } from "./apiList"
 import { ApiRequest } from "@edifiles/services";
 
 /*export const youtubeVideos: Resource = {
@@ -41,8 +41,27 @@ export const youtubeVideosReq: ApiRequest = youtube.makeRequest({
   })
 })
 
-export const bibleVerseReq: ApiRequest = bibleApi.makeRequest({
-  endPoint: "/verse",
+export const bibleReq: ApiRequest = apiBible.makeRequest({
+  endPoint: "/bibles",
+  method: "get"
+})
+
+export const bibleBooksReq: ApiRequest = apiBible.makeRequest({
+  endPoint: "/books",
+  method: "get"
+})
+
+export const bibleChapterReq: ApiRequest = apiBible.makeRequest({
+  endPoint: "/chapters",
+  method: "get"
+})
+
+export const bibleVerseReq: ApiRequest = apiBible.makeRequest({
+  endPoint: "/verses",
+  method: "get"
+})
+export const bibleApiVerseReq: ApiRequest = apiBible.makeRequest({
+  endPoint: "",
   method: "get"
 })
 

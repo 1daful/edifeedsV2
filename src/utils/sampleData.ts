@@ -153,3 +153,27 @@ export const quietTime: QuietTime = {
   },
   prayer: "Lord, help me to find quietness in You today, and remind me of Your constant presence."
 }
+
+export const bibleData = {
+  Genesis: {
+    chapters: {
+      1: 31,
+      2: 25,
+      3: 24
+    }
+  },
+  John: {
+    chapters: {
+      1: 51,
+      2: 25,
+      3: 36
+    }
+  },
+  Romans: {
+    chapters: {
+      1: 32,
+      2: 29,
+      3: 31
+    }
+  }
+}
