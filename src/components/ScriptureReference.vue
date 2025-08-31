@@ -1,218 +1,284 @@
-<script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { bibleData } from '../utils/sampleData'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue';
+import bibleStructure from "../../public/bible.json";
 
-// Props and emits
 const props = defineProps({
-  placeholder: {
-    type: Object,
-    default: () => ({
-      book: 'Select a book...',
-      chapter: 'Select a chapter...',
-      verses: 'Select verses...'
-    })
-  },
-  maxSelections: {
-    type: Number,
-    default: null
-  },
-  allowRangeSelection: {
-    type: Boolean,
-    default: true
-  },
-  showPreview: {
-    type: Boolean,
-    default: true
-  },
-  dense: {
-    type: Boolean,
-    default: false
-  },
-  readonly: {
-    type: Boolean,
-    default: false
-  },
-  initialSelection: {
-    type: Array,
-    default: () => []
-  }
-})
+  placeholder: { type: Object, default: () => ({ book: 'Select a book...', chapter: 'Select a chapter...', verses: 'Select verses...' }) },
+  maxSelections: { type: Number, default: null },
+  allowRangeSelection: { type: Boolean, default: true },
+  showPreview: { type: Boolean, default: true },
+  dense: { type: Boolean, default: false },
+  readonly: { type: Boolean, default: false },
+  initialSelection: { type: Array, default: () => [] }
+});
 
-const emit = defineEmits(['update:modelValue', 'selection-change'])
-const modelValue = defineModel()
+const emit = defineEmits(['selection-change']);
+const modelValue = defineModel();
 
-// State for creating a new reference
-const newSelectionBook = ref(null)
-const newSelectionChapter = ref(null)
-const newSelectionVerses = ref([])
+// Bible translations available via Bible API
+const bibleTranslations = ref([
+  { label: 'King James Version (KJV)', value: 'kjv', id: 'de4e12af7f28f599-02' },
+  { label: 'New International Version (NIV)', value: 'niv', id: '71c6eab17ae5b667-01' },
+  { label: 'English Standard Version (ESV)', value: 'esv', id: '59dcc2ca707d4bec-01' },
+  { label: 'New American Standard Bible (NASB)', value: 'nasb', id: '65eec8e0b60e656b-01' },
+  { label: 'New Revised Standard Version (NRSV)', value: 'nrsv', id: '40072c4a5aba4022-01' },
+  { label: 'Christian Standard Bible (CSB)', value: 'csb', id: '685d1470fe4d5c3b-01' },
+  { label: 'New Living Translation (NLT)', value: 'nlt', id: '71c6eab17ae5b667-04' }
+]);
 
-// State for the list of all selections
-const selections = ref([])
+const selectedTranslation = ref('kjv');
+const quotations = ref({});
+const loadingQuotations = ref(false);
+const quotationError = ref(null);
+const showQuotations = ref(false);
 
-// State for range selection
-const showRangeInput = ref(false)
-const rangeStart = ref(null)
-const rangeEnd = ref(null)
-const error = ref(null)
+const allBooksData = computed(() => {
+  const allBooks = [...bibleStructure.bible.old_testament, ...bibleStructure.bible.new_testament];
+  return allBooks.reduce((acc, book) => {
+    acc[book.book] = book;
+    acc[book.abbreviation] = book;
+    return acc;
+  }, {});
+});
 
-// Computed properties
-const books = computed(() =>
-  Object.keys(bibleData)
-    .sort()
-    .map(book => ({
-      label: book,
-      value: book,
-      chaptersCount: Object.keys(bibleData[book].chapters).length
-    }))
-)
+const newSelectionBook = ref(null);
+const newSelectionChapter = ref(null);
+const newSelectionVerses = ref([]);
+const selections = ref([]);
+const showRangeInput = ref(false);
+const rangeStart = ref(null);
+const rangeEnd = ref(null);
+const error = ref(null);
+
+const books = computed(() => {
+  return [...bibleStructure.bible.old_testament, ...bibleStructure.bible.new_testament]
+    .map(book => ({ label: book.book, value: book.book }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+});
 
 const chapters = computed(() => {
-  if (!newSelectionBook.value) return []
-  return Object.keys(bibleData[newSelectionBook.value].chapters)
-    .map(num => ({
-      label: `Chapter ${num}`,
-      value: Number(num),
-      versesCount: bibleData[newSelectionBook.value].chapters[num]
-    }))
-    .sort((a, b) => a.value - b.value)
-})
+  if (!newSelectionBook.value) return [];
+  const bookData = allBooksData.value[newSelectionBook.value];
+  if (!bookData) return [];
+  return Array.from({ length: bookData.chapters }, (_, index) => ({ label: `Chapter ${index + 1}`, value: index + 1 }));
+});
 
 const verses = computed(() => {
-  if (!newSelectionBook.value || !newSelectionChapter.value) return []
-  const count = bibleData[newSelectionBook.value].chapters[newSelectionChapter.value]
-  return Array.from({ length: count }, (_, i) => ({
-    label: `Verse ${i + 1}`,
-    value: i + 1
-  }))
-})
+  if (!newSelectionBook.value || !newSelectionChapter.value) return [];
+  const bookData = allBooksData.value[newSelectionBook.value];
+  const verseCount = bookData?.verses_per_chapter[newSelectionChapter.value - 1];
+  if (!verseCount) return [];
+  return Array.from({ length: verseCount }, (_, i) => ({ label: `Verse ${i + 1}`, value: i + 1 }));
+});
 
-// Combined formatted list for display
 const formattedSelections = computed(() => {
-  if (selections.value.length === 0) return []
-
-  const formatted = []
+  const formatted = [];
   selections.value.forEach(sel => {
-    const sortedVerses = [...sel.verses].sort((a, b) => a - b)
-    const ranges = []
-    let start = sortedVerses[0]
-    let end = start
+    const sortedVerses = [...sel.verses].sort((a, b) => a - b);
+    let start = sortedVerses[0], end = start;
+    if (!start) return;
 
     for (let i = 1; i < sortedVerses.length; i++) {
       if (sortedVerses[i] === end + 1) {
-        end = sortedVerses[i]
+        end = sortedVerses[i];
       } else {
-        ranges.push(start === end ? `${sel.book} ${sel.chapter}:${start}` : `${sel.book} ${sel.chapter}:${start}-${end}`)
-        start = sortedVerses[i]
-        end = start
+        formatted.push(start === end ? `${sel.book} ${sel.chapter}:${start}` : `${sel.book} ${sel.chapter}:${start}-${end}`);
+        start = sortedVerses[i];
+        end = start;
       }
     }
-    if (start !== undefined) {
-      ranges.push(start === end ? `${sel.book} ${sel.chapter}:${start}` : `${sel.book} ${sel.chapter}:${start}-${end}`)
-    }
-    formatted.push(...ranges)
-  })
-
-  return formatted
-})
-
-const isMaxSelectionsReached = computed(() =>
-  props.maxSelections && selections.value.length >= props.maxSelections
-)
+    formatted.push(start === end ? `${sel.book} ${sel.chapter}:${start}` : `${sel.book} ${sel.chapter}:${start}-${end}`);
+  });
+  return formatted;
+});
 
 const selectionSummary = computed(() => {
-  const verseCount = selections.value.reduce((total, sel) => total + sel.verses.length, 0)
-  if (verseCount === 0) return 'No verses selected'
-  if (verseCount === 1) return '1 verse selected'
-  return `${verseCount} verses selected`
-})
+  const verseCount = selections.value.reduce((total, sel) => total + sel.verses.length, 0);
+  if (verseCount === 0) return 'No verses selected';
+  return `${verseCount} verse${verseCount === 1 ? '' : 's'} selected`;
+});
 
-// Methods
-const clearNewSelection = () => {
-  newSelectionBook.value = null
-  newSelectionChapter.value = null
-  newSelectionVerses.value = []
-  cancelRangeInput()
-}
+// Bible API functions
+const getBookAbbreviation = (bookName) => {
+  const bookData = allBooksData.value[bookName];
+  return bookData?.abbreviation?.toUpperCase() || bookName.toUpperCase();
+};
+
+const fetchBibleQuotation = async (book, chapter, verses) => {
+  const translation = bibleTranslations.value.find(t => t.value === selectedTranslation.value);
+  if (!translation) return null;
+
+  const bookAbbr = getBookAbbreviation(book);
+  const verseRanges = [];
+
+  // Group consecutive verses into ranges
+  const sortedVerses = [...verses].sort((a, b) => a - b);
+  let start = sortedVerses[0], end = start;
+
+  for (let i = 1; i < sortedVerses.length; i++) {
+    if (sortedVerses[i] === end + 1) {
+      end = sortedVerses[i];
+    } else {
+      verseRanges.push(start === end ? `${start}` : `${start}-${end}`);
+      start = sortedVerses[i];
+      end = start;
+    }
+  }
+  verseRanges.push(start === end ? `${start}` : `${start}-${end}`);
+
+  try {
+    const promises = verseRanges.map(async (range) => {
+      const reference = `${bookAbbr}.${chapter}.${range}`;
+      const response = await fetch(`https://bible-api.com/${book}%20${chapter}:${verses.join(',')}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${reference}`);
+      }
+
+      const data = await response.json();
+      const fullText = data.verses.map(verse => verse.text).join(' ');
+      return {
+        reference: `${book} ${chapter}:${range}`,
+        content: fullText
+      };
+    });
+
+    const results = await Promise.all(promises);
+    return results;
+  } catch (error) {
+    console.error('Error fetching Bible quotation:', error);
+    throw error;
+  }
+};
+
+const loadAllQuotations = async () => {
+  if (selections.value.length === 0) return;
+
+  loadingQuotations.value = true;
+  quotationError.value = null;
+  quotations.value = {};
+
+  try {
+    for (const selection of selections.value) {
+      const key = `${selection.book}-${selection.chapter}-${selection.verses.join(',')}`;
+      const quotationData = await fetchBibleQuotation(selection.book, selection.chapter, selection.verses);
+      quotations.value[key] = quotationData;
+    }
+  } catch (error) {
+    quotationError.value = 'Failed to load Bible quotations. Please check your API key and try again.';
+  } finally {
+    loadingQuotations.value = false;
+  }
+};
+
+const getQuotationKey = (selection) => {
+  return `${selection.book}-${selection.chapter}-${selection.verses.join(',')}`;
+};
 
 const addSelection = () => {
   if (!newSelectionBook.value || !newSelectionChapter.value || !newSelectionVerses.value.length) {
-    error.value = 'Please select a book, chapter, and at least one verse.'
-    return
+    error.value = 'Please select a book, chapter, and at least one verse.';
+    return;
   }
-
   const newReference = {
     book: newSelectionBook.value,
     chapter: newSelectionChapter.value,
     verses: newSelectionVerses.value.sort((a, b) => a - b)
-  }
-
-  selections.value.push(newReference)
-  clearNewSelection()
-  error.value = null
-}
-
-const removeSelection = (index) => {
-  selections.value.splice(index, 1)
-}
-
-const clearAllSelections = () => {
-  selections.value = []
-  clearNewSelection()
-}
-
-const toggleRangeInput = () => {
-  showRangeInput.value = !showRangeInput.value
-  if (!showRangeInput.value) {
-    cancelRangeInput()
-  }
-}
-
-const cancelRangeInput = () => {
-  rangeStart.value = null
-  rangeEnd.value = null
-}
+  };
+  selections.value.push(newReference);
+  clearNewSelection();
+  error.value = null;
+};
 
 const selectVerseRange = () => {
-  if (!rangeStart.value || !rangeEnd.value) return
+  if (!rangeStart.value || !rangeEnd.value) return;
+  const min = Math.min(rangeStart.value, rangeEnd.value);
+  const max = Math.max(rangeStart.value, rangeEnd.value);
+  const range = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  const combinedVerses = [...new Set([...(newSelectionVerses.value || []), ...range])];
+  newSelectionVerses.value = combinedVerses.sort((a, b) => a - b);
+  rangeStart.value = null;
+  rangeEnd.value = null;
+  showRangeInput.value = false;
+};
 
-  const min = Math.min(rangeStart.value, rangeEnd.value)
-  const max = Math.max(rangeStart.value, rangeEnd.value)
-  const range = Array.from({ length: max - min + 1 }, (_, i) => min + i)
+const clearNewSelection = () => {
+  newSelectionBook.value = null;
+  newSelectionChapter.value = null;
+  newSelectionVerses.value = [];
+  showRangeInput.value = false;
+  rangeStart.value = null;
+  rangeEnd.value = null;
+};
 
-  const currentVerses = newSelectionVerses.value || [];
-  const combinedVerses = [...new Set([...currentVerses, ...range])];
+const selectAllVerses = () => {
+  if (newSelectionChapter.value) {
+    newSelectionVerses.value = verses.value.map(v => v.value);
+  }
+};
 
-  newSelectionVerses.value = combinedVerses.sort((a, b) => a - b)
-  cancelRangeInput()
-  showRangeInput.value = false
-}
+const removeSelection = (index) => {
+  selections.value.splice(index, 1);
+  // Clear quotations when selections change
+  quotations.value = {};
+};
 
-// Watchers
-watch(newSelectionBook, () => {
-  newSelectionChapter.value = null
-  newSelectionVerses.value = []
-})
+const clearAllSelections = () => {
+  selections.value = [];
+  clearNewSelection();
+  quotations.value = {};
+  showQuotations.value = false;
+};
 
-watch(newSelectionChapter, () => {
-  newSelectionVerses.value = []
-})
+watch([newSelectionBook, newSelectionChapter], () => {
+  if (newSelectionBook.value === null) {
+    newSelectionChapter.value = null;
+    newSelectionVerses.value = [];
+  } else if (newSelectionChapter.value === null) {
+    newSelectionVerses.value = [];
+  }
+});
 
 watch(selections, (newSelections) => {
-  emit('selection-change', newSelections)
-  modelValue.value = formattedSelections.value
-}, { deep: true })
+  emit('selection-change', newSelections);
+  modelValue.value = formattedSelections.value;
+  // Clear quotations when selections change
+  if (quotations.value && Object.keys(quotations.value).length > 0) {
+    quotations.value = {};
+  }
+}, { deep: true });
 
-// Lifecycle
+watch(selectedTranslation, () => {
+  // Clear quotations when translation changes
+  quotations.value = {};
+});
+
 onMounted(() => {
   if (props.initialSelection && Array.isArray(props.initialSelection)) {
-    selections.value = props.initialSelection
+    selections.value = props.initialSelection;
   }
-})
+});
 </script>
 
 <template>
   <div class="scripture-selector q-pa-md">
     <div class="q-gutter-md">
+      <!-- Translation Selection -->
+      <q-card flat bordered class="q-pa-md">
+        <q-card-section>
+          <div class="text-h6 q-mb-md">Bible Translation</div>
+          <q-select
+            v-model="selectedTranslation"
+            :options="bibleTranslations"
+            label="Choose Translation"
+            emit-value
+            map-options
+            :dense="dense"
+          />
+        </q-card-section>
+      </q-card>
+
+      <!-- New Reference Selection -->
       <q-card flat bordered class="q-pa-md new-selection-card">
         <q-card-section>
           <div class="text-h6 q-mb-md">Add a New Reference</div>
@@ -253,7 +319,6 @@ onMounted(() => {
                     emit-value
                     map-options
                     clearable
-                    :max-values="maxSelections"
                     class="col"
                   />
                   <q-btn flat icon="select_all" @click="selectAllVerses" :disable="readonly" round>
@@ -263,7 +328,7 @@ onMounted(() => {
                     v-if="allowRangeSelection"
                     flat
                     :icon="showRangeInput ? 'remove' : 'add'"
-                    @click="toggleRangeInput"
+                    @click="showRangeInput = !showRangeInput"
                     :color="showRangeInput ? 'negative' : ''"
                     :disable="readonly"
                     round
@@ -309,18 +374,26 @@ onMounted(() => {
       </q-card>
 
       <q-banner v-if="error" class="text-white bg-negative" rounded>
-        <template #avatar>
-          <q-icon name="error" />
-        </template>
+        <template #avatar> <q-icon name="error" /></template>
         {{ error }}
-        <template #action>
-          <q-btn flat label="Dismiss" @click="error = null" />
-        </template>
+        <template #action> <q-btn flat label="Dismiss" @click="error = null" /></template>
       </q-banner>
 
+      <!-- Current Selections -->
       <q-card v-if="showPreview" flat bordered class="q-mt-md">
         <q-card-section class="q-pa-md">
-          <div class="text-h6 q-mb-sm">Current Selections</div>
+          <div class="row items-center justify-between q-mb-sm">
+            <div class="text-h6">Current Selections</div>
+            <q-btn
+              v-if="selections.length > 0"
+              color="primary"
+              :label="showQuotations ? 'Hide Text' : 'Show Text'"
+              :icon="showQuotations ? 'visibility_off' : 'menu_book'"
+              @click="showQuotations ? showQuotations = false : (showQuotations = true, loadAllQuotations())"
+              :loading="loadingQuotations"
+              flat
+            />
+          </div>
           <div v-if="formattedSelections.length > 0">
             <q-chip
               v-for="(selection, index) in formattedSelections"
@@ -334,13 +407,61 @@ onMounted(() => {
               {{ selection }}
             </q-chip>
           </div>
-          <div v-else class="text-body2 text-grey-6">
-            No verses selected.
-          </div>
+          <div v-else class="text-body2 text-grey-6">No verses selected.</div>
           <div class="text-caption text-grey-6 q-mt-sm">{{ selectionSummary }}</div>
         </q-card-section>
       </q-card>
 
+      <!-- Bible Quotations -->
+      <q-card v-if="showQuotations && selections.length > 0" flat bordered class="q-mt-md">
+        <q-card-section>
+          <div class="text-h6 q-mb-md">
+            Bible Text ({{ bibleTranslations.find(t => t.value === selectedTranslation)?.label }})
+          </div>
+
+          <q-banner v-if="quotationError" class="text-white bg-negative q-mb-md" rounded>
+            <template #avatar> <q-icon name="error" /></template>
+            {{ quotationError }}
+            <template #action>
+              <q-btn flat label="Retry" @click="loadAllQuotations" />
+              <q-btn flat label="Dismiss" @click="quotationError = null" />
+            </template>
+          </q-banner>
+
+          <div v-if="loadingQuotations" class="text-center q-py-lg">
+            <q-spinner-dots size="40px" color="primary" />
+            <div class="q-mt-sm text-grey-6">Loading Bible text...</div>
+          </div>
+
+          <div v-else-if="Object.keys(quotations).length > 0" class="q-gutter-md">
+            <div
+              v-for="(selection, index) in selections"
+              :key="index"
+              class="quotation-section"
+            >
+              <div class="text-h6 text-primary q-mb-sm">
+                {{ formattedSelections[index] }}
+              </div>
+              <div
+                v-if="quotations[getQuotationKey(selection)]"
+                class="quotation-content q-pa-md bg-grey-1 rounded-borders"
+              >
+                <div
+                  v-for="(passage, pIndex) in quotations[getQuotationKey(selection)]"
+                  :key="pIndex"
+                  class="q-mb-sm"
+                  v-html="passage.content"
+                />
+              </div>
+              <div v-else class="text-grey-6 q-pa-md bg-grey-1 rounded-borders">
+                Failed to load quotation for this reference.
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <!-- Action Buttons -->
       <div v-if="!readonly" class="row q-gutter-sm q-mt-md">
         <q-btn
           outline
@@ -358,5 +479,23 @@ onMounted(() => {
 <style scoped>
 .scripture-selector {
   max-width: 100%;
+}
+
+.quotation-section {
+  border-left: 4px solid var(--q-primary);
+  padding-left: 16px;
+  margin-bottom: 24px;
+}
+
+.quotation-content {
+  font-family: 'Georgia', serif;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.quotation-content :deep(sup) {
+  font-size: 0.75em;
+  color: var(--q-primary);
+  font-weight: bold;
 }
 </style>

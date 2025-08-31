@@ -13,25 +13,25 @@
         bordered
         @click="openVerse(dailyVerse)"
       >
-        <q-img
+        <!--q-img
           :src="dailyVerse.image"
           class="col-4 rounded-borders-left"
           @error="handleImageError"
-        />
+          v-if="dailyVerse.image"
+        /-->
         <div class="q-pa-md col">
-          <div class="text-h6 text-weight-medium q-mb-sm">
-            "{{ dailyVerse.text }}"
+          <div class="text-h6 text-weight-medium q-mb-sm" v-if="dailyVerse?.verse_text">
+            "{{ dailyVerse.verse_text }}"
           </div>
           <div class="text-subtitle2 text-primary q-mb-sm">
-            {{ dailyVerse.reference }}
+            {{ dailyVerse?.verse_ref }}
           </div>
-          <div class="text-caption text-grey-6">
+          <!--div class="text-caption text-grey-6">
             {{ dailyVerse.category }}
-          </div>
+          </div-->
           <div class="row items-center q-mt-md">
             <q-btn size="sm" flat icon="share" label="Share" @click.stop="shareVerse" />
-            <q-btn size="sm" flat icon="bookmark" :color="dailyVerse.bookmarked ? 'primary' : 'grey'"
-                    @click.stop="toggleBookmark('verse')" />
+            <q-btn size="sm" flat icon="bookmark" :color="dailyVerse ? 'primary' : 'grey'" @click.stop="toggleBookmark('verse')" />
           </div>
         </div>
       </q-card>
@@ -40,18 +40,35 @@
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
-import { reactive, ref } from 'vue';
+import { onBeforeMount, reactive, ref } from 'vue';
+import { dbClient } from '../../api/apiList';
+import { supabase } from '../../lib/supabase';
+//import { mediaClient } from '../../api/mediaApi';
+//import { randomVerse } from '../../api/Resources';
 
 const $q = useQuasar()
 
-const dailyVerse = reactive({
+/*const dailyVerse1 = reactive({
   id: 1,
   text: 'Be still and know that I am God',
   reference: 'Psalm 46:10',
   category: 'Peace & Comfort',
   image: 'https://images.unsplash.com/photo-1544273677-6e4e5b0f0b8e?w=300&h=200&fit=crop',
   bookmarked: false
-})
+})*/
+
+let dailyVerse = ref(null)
+
+onBeforeMount(async () => {
+  const { data } = await supabase
+    .from("verse_of_day")
+    .select("*")
+    .order("published_at", { ascending: false })
+    .limit(1)
+    .single();
+  dailyVerse.value = data
+  console.log('Daily verse loaded:', dailyVerse.value);
+});
 
 const handleImageError = (event) => {
   // Set fallback image

@@ -1,4 +1,4 @@
-import { backEndApi, bibleApi, youtube } from "./apiList";
+import { apiBible, backEndApi, bibleApi, youtube } from "./apiList";
 /*export const youtubeVideos: Resource = {
   get: {
     response:  youtube.get({
@@ -26,6 +26,7 @@ export const youtubeVideosReq = youtube.makeRequest({
         part: "snippet",
         chart: "mostPopular",
         maxResults: 10,
+        q: 'christian and gospel'
     },
     method: "get",
     transform: (item) => ({
@@ -37,8 +38,24 @@ export const youtubeVideosReq = youtube.makeRequest({
         channelTitle: item.snippet.channelTitle,
     })
 });
-export const bibleVerseReq = bibleApi.makeRequest({
-    endPoint: "/verse",
+export const bibleReq = apiBible.makeRequest({
+    endPoint: "/bibles",
+    method: "get"
+});
+export const bibleBooksReq = apiBible.makeRequest({
+    endPoint: "/books",
+    method: "get"
+});
+export const bibleChapterReq = apiBible.makeRequest({
+    endPoint: "/chapters",
+    method: "get"
+});
+export const bibleVerseReq = apiBible.makeRequest({
+    endPoint: "/verses",
+    method: "get"
+});
+export const randomVerse = bibleApi.makeRequest({
+    endPoint: "/data/web/random",
     method: "get"
 });
 export const callBack = backEndApi.makeRequest({

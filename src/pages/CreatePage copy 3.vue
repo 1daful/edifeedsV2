@@ -446,7 +446,10 @@ async function handleSubmit() {
 
     // If there are assigned contents, create the assignments
     if (assignedContent.value.length > 0) {
-      const contentIds = assignedContent.value.map(item => ({ content_type: item.type }));
+      const topic_media = assignedContent.value.map(item => ({
+        topic_id: topicResponse.data.id,
+        media_id: media.id
+      }));
       console.log('Content IDs for assignment:', contentIds);
       const assignmentQuery: ApiRequest = {
         url: `topic_contents`,

@@ -29,6 +29,7 @@ export const youtubeVideosReq: ApiRequest = youtube.makeRequest({
     part: "snippet",
     chart: "mostPopular",
     maxResults: 10,
+    q: 'christian and gospel'
   },
   method: "get",
   transform: (item: any) => ({
@@ -60,8 +61,8 @@ export const bibleVerseReq: ApiRequest = apiBible.makeRequest({
   endPoint: "/verses",
   method: "get"
 })
-export const bibleApiVerseReq: ApiRequest = apiBible.makeRequest({
-  endPoint: "",
+export const randomVerse: ApiRequest = bibleApi.makeRequest({
+  endPoint: "/data/web/random",
   method: "get"
 })
 

@@ -1,10 +1,10 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-inner-loading :showing="loading" color="primary">
+    <!--<q-inner-loading :showing="loading" color="primary">
       <q-spinner-dots size="50px" />
-    </q-inner-loading>
-    <q-header elevated class="bg-white text-black shadow-2">
-      <q-toolbar>
+    </q-inner-loading>-->
+    <q-header elevated class="bg-primary text-black shadow-2">
+      <q-toolbar class="nav-container q-py-sm">
         <q-btn
           flat
           round
@@ -13,7 +13,7 @@
           aria-label="Toggle menu"
           :loading="drawerLoading"
         />
-        <q-toolbar-title class="text-weight-bold cursor-pointer" @click="goHome">
+        <q-toolbar-title class="text-weight-bold cursor-pointer logo" @click="goHome">
           {{ appConfig.name }}
         </q-toolbar-title>
         <q-space />
@@ -60,7 +60,7 @@
               <q-item-section>Settings</q-item-section>
             </q-item>
             <q-separator />
-            <q-item clickable @click="authStore.logout()" v-close-popup>
+            <q-item clickable @click="logout" v-close-popup>
               <q-item-section avatar>
                 <q-icon name="logout" />
               </q-item-section>
@@ -313,6 +313,11 @@ const loadContent = async () => {
   }
 }
 
+const logout = async () => {
+  await authStore.logout()
+  router.push('/login')
+}
+
 // Lifecycle
 onMounted(async () => {
   await loadContent()
@@ -326,7 +331,36 @@ watch(searchQuery, (newQuery) => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.q-header {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  .q-toolbar {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+.nav-links {
+  display: flex;
+  gap: 1rem;
+  .nav-link-item {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+  }
+}
+
 .trending-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }

@@ -324,23 +324,23 @@ async function loadProfile() {
   error.value = null;
 
   try {
-    const res = await fetch('/api/user/profile', {
+    /*const res = await fetch('/api/user/profile', {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'
       }
-    });
+    });*/
 
-    if (!res.ok) {
+    /*if (!res.ok) {
       throw new Error(`Failed to load profile: ${res.statusText}`);
-    }
+    }*/
 
-    const data = await res.json();
+    //const data = await res.json();
 
-    user.value = { ...user.value, ...data.user };
-    userBookmarks.value = data.bookmarks || [];
-    userCollections.value = data.collections || [];
-    userRatings.value = data.ratings || [];
+    user.value = { ...user.value, /*...data.user */ };
+    //userBookmarks.value = data.bookmarks || [];
+    //userCollections.value = data.collections || [];
+    //userRatings.value = data.ratings || [];
 
     // Update edit form with current data
     editForm.value = {

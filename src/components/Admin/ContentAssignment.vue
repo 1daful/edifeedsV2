@@ -229,6 +229,10 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { QueryType, SupabaseRepo } from '@edifiles/services';
+import { config } from '../../../public/config';
+
+const repo = new SupabaseRepo(config.supabase);
 
 const $q = useQuasar()
 
@@ -384,7 +388,11 @@ async function fetchContents() {
   try {
     // Replace with actual API call
     // const response = await fetch(`${props.apiEndpoint}?topicId=${props.topic.id}`)
-    // const data = await response.json()
+    const query: QueryType = {
+      name: 'media',
+      data: undefined
+    }
+    const data = await repo.get(query)
 
     // Mock data with enhanced properties
     const mockData = [

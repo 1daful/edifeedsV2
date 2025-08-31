@@ -275,6 +275,23 @@
             </q-item-section>
           </q-item>
 
+          <!-- Groups -->
+          <q-item
+            clickable
+            v-ripple
+            :to="{ name: 'create-group' }"
+            active-class="bg-primary text-white"
+            class="rounded-borders q-ma-xs"
+          >
+            <q-item-section avatar>
+              <q-icon name="favorite" />
+            </q-item-section>
+            <q-item-section>Create Group</q-item-section>
+            <q-item-section side>
+              <q-badge v-if="prayerRequests.new > 0" color="red" :label="prayerRequests.new" />
+            </q-item-section>
+          </q-item>
+
           <!-- Analytics -->
           <q-item
             clickable

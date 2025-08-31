@@ -33,7 +33,7 @@ export const apiBible: Api = new Api({
 })
 
 export const bibleApi: Api = new Api({
-  endPoint: 'https://bible-api.com/'
+  endPoint: 'https://bible-api.com'
 })
 
 const supabaseConfig = {

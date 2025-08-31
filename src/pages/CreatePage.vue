@@ -1,4 +1,3 @@
-<!-- src/pages/CreateContentPage.vue -->
 <template>
   <q-page class="q-pa-md">
     <div class="content-header q-mb-lg">
@@ -13,7 +12,6 @@
       animated
       class="content-stepper"
     >
-      <!-- Step 1: Content Type & Basic Info -->
       <q-step
         :name="1"
         title="Content Details"
@@ -22,43 +20,11 @@
         :header-nav="currentStep > 1"
       >
         <q-form ref="basicForm" class="q-gutter-md">
-          <!-- Content Type Selection -->
-          <q-select
-            filled
-            v-model="form.type"
-            :options="mediaTypeOptions"
-            option-label="label"
-            option-value="value"
-            emit-value
-            map-options
-            label="Content Type"
-            :rules="[val => !!val || 'Content type is required']"
-          >
-            <template v-slot:option="scope">
-              <q-item v-bind="scope.itemProps">
-                <q-item-section avatar>
-                  <q-icon :name="scope.opt.icon" :color="scope.opt.color" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
-                  <q-item-label caption>{{ scope.opt.description }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </template>
-            <template v-slot:prepend>
-              <q-icon :name="getContentIcon(form.type)" :color="getContentColor(form.type)" />
-            </template>
-          </q-select>
-
           <q-input
             filled
             v-model="form.title"
             label="Title"
-            :rules="[
-              val => !!val || 'Title is required',
-              val => val.length >= 3 || 'Title must be at least 3 characters',
-              val => val.length <= 100 || 'Title must be less than 100 characters'
-            ]"
+            :rules="rules.title"
             counter
             maxlength="100"
           >
@@ -67,31 +33,173 @@
             </template>
           </q-input>
 
+          <div class="editor-section">
+            <div class="text-subtitle2 q-mb-sm">Content</div>
+            <div class="editor-container">
+              <TinyMCEEditor
+                v-model="form.content"
+                :config="editorConfig"
+                :disabled="loading"
+                @change="onEditorChange"
+              />
+            </div>
+            <div class="text-caption text-grey-6 q-mt-sm">
+              Use the rich text editor to create engaging content with formatting, images, and more.
+            </div>
+          </div>
+
           <q-input
             filled
             v-model="form.description"
             type="textarea"
-            label="Description"
-            :rules="[
-              val => !!val || 'Description is required',
-              val => val.length >= 10 || 'Description must be at least 10 characters'
-            ]"
+            label="Short Description / Excerpt"
+            :rules="rules.description"
             counter
-            maxlength="500"
-            rows="4"
-            hint="Provide a meaningful description of the content"
+            maxlength="300"
+            rows="3"
+            hint="Brief description for previews and search results"
           />
 
-          <q-input
+          <div class="category-selection-section">
+            <div class="text-subtitle2 q-mb-sm">Content Category</div>
+
+            <!-- Main Category Selection -->
+            <q-select
+              filled
+              v-model="form.category"
+              :options="filteredCategoryOptions"
+              label="Select Primary Category"
+              :rules="rules.required"
+              hint="Choose the main category for your content"
+              option-value="name"
+              option-label="name"
+              emit-value
+              map-options
+              clearable
+              @update:model-value="onCategoryChange"
+            >
+              <template v-slot:prepend>
+                <q-icon name="category" />
+              </template>
+
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section avatar>
+                    <q-icon :name="scope.opt.icon" :color="scope.opt.color || 'primary'" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.name }}</q-item-label>
+                    <q-item-label caption lines="2">{{ scope.opt.description }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+
+              <template v-slot:selected-item="scope">
+                <div class="row items-center q-gutter-sm">
+                  <q-icon :name="scope.opt.icon" :color="scope.opt.color || 'primary'" />
+                  <span>{{ scope.opt.name }}</span>
+                </div>
+              </template>
+            </q-select>
+
+            <!-- Subcategory Selection (shows only when main category has children) -->
+            <q-select
+              v-if="availableSubcategories.length > 0"
+              filled
+              v-model="form.subcategory"
+              :options="availableSubcategories"
+              label="Select Subcategory"
+              hint="Choose a more specific category"
+              :rules="rules.required"
+              option-value="name"
+              option-label="name"
+              emit-value
+              map-options
+              clearable
+              class="q-mt-md"
+            >
+              <template v-slot:prepend>
+                <q-icon name="subdirectory_arrow_right" />
+              </template>
+
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section avatar>
+                    <q-icon :name="scope.opt.icon" color="secondary" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.name }}</q-item-label>
+                    <q-item-label caption lines="2">{{ scope.opt.description }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+
+            <!-- Category Preview Card -->
+            <q-card v-if="selectedCategoryInfo" flat bordered class="q-mt-md category-preview-card">
+              <q-card-section>
+                <div class="row items-center q-gutter-md">
+                  <q-icon
+                    :name="selectedCategoryInfo.icon"
+                    :color="selectedCategoryInfo.color || 'primary'"
+                    size="md"
+                  />
+                  <div class="col">
+                    <div class="text-h6">{{ selectedCategoryInfo.name }}</div>
+                    <div class="text-caption text-grey-6">{{ selectedCategoryInfo.description }}</div>
+                    <div v-if="form.subcategory" class="text-caption text-primary q-mt-xs">
+                      <q-icon name="subdirectory_arrow_right" size="xs" />
+                      {{ form.subcategory }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- Quick Category Chips (for faster selection) -->
+            <div class="q-mt-md">
+              <div class="text-caption text-grey-6 q-mb-sm">Quick Select:</div>
+              <div class="row q-gutter-sm">
+                <q-chip
+                  v-for="category in quickSelectCategories"
+                  :key="category.name"
+                  :color="form.category === category.name ? 'primary' : 'grey-3'"
+                  :text-color="form.category === category.name ? 'white' : 'dark'"
+                  :outline="form.category !== category.name"
+                  clickable
+                  @click="selectQuickCategory(category)"
+                  :icon="category.icon"
+                  class="category-chip"
+                >
+                  {{ category.name }}
+                </q-chip>
+              </div>
+            </div>
+          </div>
+
+          <!--q-select
             filled
-            v-model="form.author"
-            label="Author / Minister"
-            :rules="[val => !!val || 'Author is required']"
+            v-model="form.category"
+            :options="categoryOptions"
+            label="Category"
+            :rules="rules.required"
+            hint="Select the primary category for this content"
           >
-            <template v-slot:append>
-              <q-icon name="person" />
+            <template v-slot:prepend>
+              <q-icon name="category" />
             </template>
-          </q-input>
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                <q-item-section avatar>
+                  <q-icon :name="scope.opt.icon" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.name }}</q-item-label>
+                  <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select-->
 
           <q-input
             filled
@@ -104,7 +212,6 @@
             </template>
           </q-input>
 
-          <!-- Thumbnail Upload Section -->
           <div class="thumbnail-section">
             <div class="text-subtitle2 q-mb-sm">Thumbnail Image</div>
             <div class="row q-gutter-md">
@@ -142,7 +249,6 @@
             </div>
           </div>
 
-          <!-- Tags Input Section -->
           <div class="tags-section">
             <div class="text-subtitle2 q-mb-sm">Tags</div>
             <div class="tags-input-container">
@@ -181,9 +287,29 @@
             </div>
           </div>
 
-          <!-- Scripture References -->
           <div class="scripture-section">
             <ScriptureReference v-model="form.scripture" />
+          </div>
+
+          <div class="preview-section">
+            <q-btn
+              flat
+              icon="preview"
+              label="Preview Content"
+              @click="showPreview = !showPreview"
+              class="q-mb-md"
+            />
+            <q-slide-transition>
+              <div v-show="showPreview" class="preview-container">
+                <q-card flat bordered>
+                  <q-card-section>
+                    <div class="text-h6 q-mb-md">{{ form.title || 'Preview Title' }}</div>
+                    <div class="text-caption text-grey-6 q-mb-md">By {{ form.author || 'Author' }}</div>
+                    <div class="preview-content" v-html="form.content"></div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </q-slide-transition>
           </div>
         </q-form>
 
@@ -194,11 +320,11 @@
             label="Continue"
             icon-right="arrow_forward"
             :loading="loading"
+            :disable="!isBasicFormValid"
           />
         </q-stepper-navigation>
       </q-step>
 
-      <!-- Step 2: Assign Content (if needed) -->
       <q-step
         :name="2"
         title="Assign Content"
@@ -216,14 +342,13 @@
           next-button-label="Continue"
           next-button-icon="arrow_forward"
           @next="handleAssignmentNext"
-          @back="handleAssignmentBack"
+          @back="previousStep"
           @selection-changed="handleSelectionChanged"
           @skip="handleAssignmentSkip"
           @error="handleAssignmentError"
         />
       </q-step>
 
-      <!-- Step 3: Review & Submit -->
       <q-step
         :name="3"
         title="Review & Submit"
@@ -236,21 +361,16 @@
             <q-card-section>
               <div class="row q-gutter-md">
                 <div class="col-12 col-md-8">
-                  <div class="review-item">
-                    <strong>Content Type:</strong>
-                    <q-chip
-                      :label="getContentTypeLabel(form.type)"
-                      :color="getContentColor(form.type)"
-                      text-color="white"
-                      :icon="getContentIcon(form.type)"
-                      class="q-ml-sm"
-                    />
-                  </div>
                   <div class="review-item"><strong>Title:</strong> {{ form.title }}</div>
-                  <div class="review-item"><strong>Author:</strong> {{ form.author }}</div>
+                  <div class="review-item"><strong>Author:</strong> {{ user?.email || 'N/A' }}</div>
+                  <div class="review-item"><strong>Category:</strong> {{ form.category?.name || 'N/A' }}</div>
                   <div class="review-item">
                     <strong>Description:</strong>
                     <div class="q-mt-sm">{{ form.description }}</div>
+                  </div>
+                  <div class="review-item">
+                    <strong>Content:</strong>
+                    <div class="q-mt-sm content-preview" v-html="form.content"></div>
                   </div>
                   <div class="review-item" v-if="form.link">
                     <strong>Source Link:</strong>
@@ -270,7 +390,7 @@
                       />
                     </div>
                   </div>
-                  <div class="review-item" v-if="form.scripture.length">
+                  <div class="review-item" v-if="form.scripture && form.scripture.length">
                     <strong>Scripture:</strong>
                     <div class="q-mt-sm">{{ form.scripture.join(', ') }}</div>
                   </div>
@@ -323,14 +443,13 @@
             label="Submit Content"
             icon-right="send"
             class="q-ml-sm"
-            :loading="submitLoading"
+            :loading="loading"
             :disable="!isFormValid"
           />
         </q-stepper-navigation>
       </q-step>
     </q-stepper>
 
-    <!-- Success Dialog -->
     <q-dialog v-model="showSuccessDialog" persistent>
       <q-card style="min-width: 350px">
         <q-card-section class="row items-center">
@@ -338,7 +457,7 @@
           <div class="text-h6">Content Submitted Successfully!</div>
         </q-card-section>
         <q-card-section>
-          <div>Your {{ getContentTypeLabel(form.type).toLowerCase() }} content has been submitted and is now available in the library.</div>
+          <div>Your content has been submitted and is now available in the library.</div>
           <div v-if="assignedContent.length" class="q-mt-sm">
             Content has been assigned to <strong>{{ assignedContent.length }}</strong> topic{{ assignedContent.length > 1 ? 's' : '' }}.
           </div>
@@ -350,8 +469,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- Loading Overlay -->
-    <q-inner-loading :showing="submitLoading">
+    <q-inner-loading :showing="loading">
       <q-spinner-gears size="50px" color="primary" />
       <div class="q-mt-md">Submitting your content...</div>
     </q-inner-loading>
@@ -362,316 +480,383 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { QueryType, SupabaseRepo } from "@edifiles/services";
+import { SupabaseRepo } from "@edifiles/services";
 import { addFiles } from "../utils/storage";
 import { config } from "../../public/config";
 import ContentAssignment from "../components/Admin/ContentAssignment.vue";
 import ScriptureReference from "../components/ScriptureReference.vue";
+import TinyMCEEditor from "../components/ContentEditor.vue";
+import { supabase } from '../lib/supabase';
 
+// --- TYPE DEFINITIONS ---
+interface Category {
+  name: string;
+  icon: string;
+  description: string;
+  parent: string | null;
+}
+
+interface ContentFormData {
+  title: string;
+  content: string;
+  description: string;
+  link: string;
+  thumbnail: string;
+  scripture: string[];
+  category: Category | null;
+  subcategory: Category | null;
+}
+
+interface AssignedContent {
+  id: string | number;
+  title: string;
+}
+
+// --- HOOKS & REFS ---
+const user = ref(null);
 const router = useRouter();
 const $q = useQuasar();
-
-// Repository setup
 const repo = new SupabaseRepo(config.supabase);
-
-// Reactive data
 const currentStep = ref(1);
-const submitLoading = ref(false);
 const loading = ref(false);
 const showSuccessDialog = ref(false);
-const basicForm = ref();
-const stepper = ref();
-const contentAssignmentRef = ref();
+const showPreview = ref(false);
+const basicForm = ref<any>(null);
+const assignedContent = ref<AssignedContent[]>([]);
 
-// Content assignment state
-const assignedContent = ref<any[]>([]);
+// --- CONSTANTS & DATA ---
 
-// Form data with validation
-const form = ref({
-  type: '',
+// Form field validation rules
+const rules = {
+  title: [
+    (val: string) => !!val || 'Title is required',
+    (val: string) => val.length >= 3 || 'Title must be at least 3 characters',
+    (val: string) => val.length <= 100 || 'Title must be less than 100 characters'
+  ],
+  description: [
+    (val: string) => !!val || 'Description is required',
+    (val: string) => val.length >= 10 || 'Description must be at least 10 characters',
+    (val: string) => val.length <= 300 || 'Description must be less than 300 characters'
+  ],
+  required: [(val: any) => !!val || 'This field is required']
+};
+
+// Form data with a more explicit type
+const form = ref<ContentFormData>({
   title: '',
+  content: '',
   description: '',
   link: '',
   thumbnail: '',
-  author: '',
-  topic: '',
-  scripture: [],
+  scripture: [], // Ensure this is always an array
+  category: null,
+  subcategory: null,
 });
 
 const tags = ref<string[]>([]);
 const tagInput = ref('');
 
-// Media type options with enhanced configuration
-const mediaTypeOptions = ref([
+// TinyMCE Editor Configuration
+const editorConfig = computed(() => ({
+  height: 400,
+  menubar: true,
+  plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount emoticons template codesample hr pagebreak nonbreaking',
+  toolbar: `
+    undo redo | blocks fontfamily fontsize |
+    bold italic underline strikethrough |
+    alignleft aligncenter alignright alignjustify |
+    outdent indent | numlist bullist |
+    forecolor backcolor removeformat |
+    pagebreak | charmap emoticons |
+    fullscreen preview save print |
+    insertfile image media template link anchor codesample |
+    ltr rtl
+  `,
+  images_upload_handler: async (blobInfo: any) => {
+    try {
+      const file = blobInfo.blob();
+      if (!file) throw new Error('No image file to upload.');
+      const result = await addFiles([file]);
+      if (!result) throw new Error('Image upload failed, no URL returned.');
+      return result;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      $q.notify({ type: 'negative', message: 'Image upload failed.', position: 'top' });
+      return '';
+    }
+  },
+  templates: [
+    { title: 'Devotional Template', description: 'Template for daily devotionals', content: '<h2>Daily Devotional - [Date]</h2><blockquote><p><em>"[Scripture Verse]"</em> - [Reference]</p></blockquote><h3>Reflection</h3><p>[Your reflection content here...]</p><h3>Prayer</h3><p>[Prayer content here...]</p><h3>Action Point</h3><p>[Practical application here...]</p>' },
+    { title: 'Sermon Notes Template', description: 'Template for sermon notes', content: '<h2>[Sermon Title]</h2><p><strong>Date:</strong> [Date]<br><strong>Speaker:</strong> [Pastor/Minister Name]<br><strong>Text:</strong> [Scripture Reference]</p><h3>Main Points</h3><ol><li><strong>Point 1:</strong> [Description]</li><li><strong>Point 2:</strong> [Description]</li><li><strong>Point 3:</strong> [Description]</li></ol><h3>Key Takeaways</h3><ul><li>[Takeaway 1]</li><li>[Takeaway 2]</li></ul><h3>Personal Application</h3><p>[How to apply this message...]</p>' },
+    { title: 'Bible Study Template', description: 'Template for Bible study guides', content: '<h2>[Study Title]</h2><p><strong>Passage:</strong> [Scripture Reference]<br><strong>Focus:</strong> [Main theme/topic]</p><h3>Background</h3><p>[Historical and cultural context...]</p><h3>Key Observations</h3><ul><li>[Observation 1]</li><li>[Observation 2]</li></ul><h3>Discussion Questions</h3><ol><li>[Question 1]</li><li>[Question 2]</li><li>[Question 3]</li></ol><h3>Practical Application</h3><p>[How to live this out...]</p>' }
+  ]
+}));
+
+// Predefined list of categories (unchanged, as it's a fixed data structure)
+const categoryOptions = ref([
   {
-    value: 'book',
-    label: 'Book',
-    icon: 'book',
-    color: 'brown',
-    description: 'Books, eBooks, and written publications'
+    name: 'Faith Focus',
+    icon: 'auto_stories',
+    color: 'deep-purple',
+    description: 'In-depth teachings, sermons, and theological content',
+    children: [
+      { name: 'The Armor of God Series', icon: 'security', description: 'Deep dive into spiritual warfare and protection through scripture.' },
+      { name: 'Kingdom Conversations', icon: 'forum', description: 'Thought-provoking interviews and discussions about faith.' },
+      { name: 'Roots & Revelations', icon: 'archaeology', description: "Biblical archaeology discoveries that confirm scripture's historical accuracy." },
+      { name: 'Doctrine & Theology', icon: 'school', description: 'Systematic studies of Christian beliefs and teachings.' },
+      { name: 'Bible Study Guides', icon: 'menu_book', description: 'Structured guides for personal or group Bible study.' }
+    ]
   },
   {
-    value: 'video',
-    label: 'Video',
-    icon: 'play_circle',
-    color: 'red',
-    description: 'Video content, sermons, and tutorials'
-  },
-  {
-    value: 'song',
-    label: 'Music',
+    name: 'Worship Wave',
     icon: 'music_note',
     color: 'purple',
-    description: 'Songs, hymns, and musical content'
+    description: 'Worship music, playlists, and musical content',
+    children: [
+      { name: "Heaven's Playlist", icon: 'playlist_play', description: 'Curated worship collections by mood and theme for every season of life.' },
+      { name: "Praise Pulse", icon: 'trending_up', description: "What's trending in gospel music - discover new artists and timeless classics." },
+      { name: "Global Worship", icon: 'public', description: 'Experience praise and worship in different languages and cultures.' },
+      { name: "Hymns & History", icon: 'history_edu', description: 'Traditional hymns with their stories and theological significance.' }
+    ]
   },
   {
-    value: 'quote',
-    label: 'Quote',
-    icon: 'format_quote',
-    color: 'orange',
-    description: 'Inspirational quotes and sayings'
+    name: 'Light Events',
+    icon: 'lightbulb',
+    color: 'amber',
+    description: 'Real-life transformation stories and testimonies',
+    children: [
+      { name: 'Faith Journeys', icon: 'timeline', description: "Personal stories of believers walking through trials and triumphs." },
+      { name: 'Miracle Moments', icon: 'auto_fix_high', description: "Documented miraculous encounters that demonstrate God's power in our lives." },
+      { name: 'Breakthrough Stories', icon: 'trending_up', description: "Testimonies of addiction recovery, relationship restoration, and life transformation." },
+      { name: 'Youth Testimonies', icon: 'groups', description: "Inspiring stories from young believers and their faith journey." }
+    ]
   },
   {
-    value: 'article',
-    label: 'Article',
-    icon: 'article',
-    color: 'blue',
-    description: 'Articles, blog posts, and written content'
+    name: 'Community & Fellowship',
+    icon: 'group',
+    color: 'teal',
+    description: 'Content focused on building Christian community',
+    children: [
+      { name: 'Small Groups', icon: 'groups_2', description: 'Resources and guides for small group ministry and fellowship.' },
+      { name: 'Family Faith', icon: 'family_restroom', description: 'Content for building faith within families and households.' },
+      { name: 'Outreach & Missions', icon: 'volunteer_activism', description: 'Stories and resources for evangelism and mission work.' }
+    ]
   },
   {
-    value: 'podcast',
-    label: 'Podcast',
-    icon: 'podcast',
+    name: 'Devotional & Prayer',
+    icon: 'self_improvement',
     color: 'indigo',
-    description: 'Audio content and podcasts'
+    description: 'Daily devotionals, prayers, and spiritual disciplines',
+    children: [
+      { name: 'Daily Devotions', icon: 'today', description: 'Daily spiritual reflections and biblical meditations.' },
+      { name: 'Prayer Life', icon: 'favorite', description: 'Teaching and resources about prayer and communion with God.' },
+      { name: 'Spiritual Disciplines', icon: 'fitness_center', description: 'Guides for fasting, meditation, and other spiritual practices.' }
+    ]
   },
   {
-    value: 'event',
-    label: 'Event',
-    icon: 'event',
-    color: 'green',
-    description: 'Events, conferences, and gatherings'
+    name: 'Other',
+    icon: 'more_horiz',
+    color: 'grey',
+    description: 'Miscellaneous content that doesn\'t fit other categories'
   }
 ]);
 
-// Content type configuration
-const contentTypeConfig = {
-  video: { color: 'red', icon: 'play_circle', label: 'Video' },
-  article: { color: 'blue', icon: 'article', label: 'Article' },
-  song: { color: 'purple', icon: 'music_note', label: 'Music' },
-  quote: { color: 'orange', icon: 'format_quote', label: 'Quote' },
-  event: { color: 'green', icon: 'event', label: 'Event' },
-  podcast: { color: 'indigo', icon: 'podcast', label: 'Podcast' },
-  book: { color: 'brown', icon: 'book', label: 'Book' }
-};
 
-// Tag management functions
+// Quick select categories (most commonly used)
+const quickSelectCategories = computed(() => [
+  categoryOptions.value.find(cat => cat.name === 'Faith Focus'),
+  categoryOptions.value.find(cat => cat.name === 'Worship Wave'),
+  categoryOptions.value.find(cat => cat.name === 'Light Events'),
+  categoryOptions.value.find(cat => cat.name === 'Devotional & Prayer')
+].filter(Boolean));
+
+// Filtered options for the main dropdown (flattened for easier selection)
+const filteredCategoryOptions = computed(() => {
+  return categoryOptions.value.map(category => ({
+    name: category.name,
+    icon: category.icon,
+    color: category.color,
+    description: category.description
+  }));
+});
+
+// Available subcategories based on selected main category
+const availableSubcategories = computed(() => {
+  if (!form.value.category) return [];
+
+  const mainCategory = categoryOptions.value.find(cat => cat.name === form.value.category);
+  return mainCategory?.children || [];
+});
+
+// Selected category information for preview
+const selectedCategoryInfo = computed(() => {
+  if (!form.value.category) return null;
+
+  return categoryOptions.value.find(cat => cat.name === form.value.category);
+});
+
+// Methods
+function onCategoryChange(newCategory) {
+  // Clear subcategory when main category changes
+  if (form.value.category !== newCategory) {
+    form.value.subcategory = null;
+  }
+}
+
+function selectQuickCategory(category) {
+  form.value.category = category.name;
+  form.value.subcategory = null; // Reset subcategory
+}
+
+// --- COMPUTED PROPERTIES ---
+const isBasicFormValid = computed(() => {
+  const { title, content, description, category } = form.value;
+  return !!title && title.length >= 3 &&
+    !!content &&
+    !!description && description.length >= 10 &&
+    !!category;
+});
+
+const isFormValid = computed(() => isBasicFormValid.value);
+
+// --- METHODS & FUNCTIONS ---
+
+// Tag management
 function addTag() {
   const tag = tagInput.value.trim().toLowerCase();
   if (tag && !tags.value.includes(tag)) {
     tags.value.push(tag);
-    tagInput.value = '';
   }
+  tagInput.value = '';
 }
 
 function removeTag(index: number) {
   tags.value.splice(index, 1);
 }
 
-// Content type helper functions
-function getContentIcon(type: string): string {
-  return contentTypeConfig[type]?.icon || 'help';
-}
-
-function getContentColor(type: string): string {
-  return contentTypeConfig[type]?.color || 'grey';
-}
-
-function getContentTypeLabel(type: string): string {
-  return contentTypeConfig[type]?.label || type;
-}
-
 // File upload handler
 async function onFileAdded(files: readonly File[]) {
+  if (!files.length) return;
+  loading.value = true;
   try {
-    loading.value = true;
-    const result = await addFiles(Array.from(files));
-    form.value.thumbnail = result ?? '';
-
-    $q.notify({
-      type: 'positive',
-      message: 'Thumbnail uploaded successfully!',
-      position: 'top'
-    });
+    const result = await addFiles([files[0]]);
+    if (result) {
+      form.value.thumbnail = result;
+      $q.notify({ type: 'positive', message: 'Thumbnail uploaded successfully!', position: 'top' });
+    } else {
+      throw new Error('Upload failed: No URL returned.');
+    }
   } catch (error) {
     console.error('Error uploading file:', error);
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to upload thumbnail.',
-      position: 'top'
-    });
+    $q.notify({ type: 'negative', message: `Failed to upload thumbnail.`, position: 'top' });
   } finally {
     loading.value = false;
   }
 }
 
-// Computed properties
-const isFormValid = computed(() => {
-  return form.value.type &&
-         form.value.title &&
-         form.value.description &&
-         form.value.author &&
-         form.value.title.length >= 3 &&
-         form.value.description.length >= 10;
-});
-
-// Content Assignment Event Handlers
-function handleSelectionChanged(event: any) {
-  assignedContent.value = event.selected;
-  console.log('Selection changed:', event);
-}
-
-function handleAssignmentNext(event: any) {
-  console.log('Assignment next:', event);
-  assignedContent.value = event.selected || [];
-  nextStep();
-}
-
-function handleAssignmentBack() {
-  console.log('Assignment back');
-  previousStep();
-}
-
-function handleAssignmentSkip(event: any) {
-  console.log('Assignment skipped:', event);
-  assignedContent.value = [];
-  nextStep();
-}
-
-function handleAssignmentError(event: any) {
-  console.error('Assignment error:', event);
-  $q.notify({
-    type: 'negative',
-    message: event.message || 'An error occurred in content assignment',
-    position: 'top'
-  });
-}
-
-// Stepper navigation
+// Stepper navigation logic
 async function nextStep() {
   if (currentStep.value === 1) {
     const valid = await basicForm.value?.validate();
-    if (!valid) return;
-
-    // Update form topic with tags
-    form.value.topic = tags.value.join(', ');
+    if (!valid || !isBasicFormValid.value) {
+      $q.notify({ type: 'negative', message: 'Please complete all required fields', position: 'top' });
+      return;
+    }
   }
-
   if (currentStep.value < 3) {
     currentStep.value++;
-    loading.value = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
 function previousStep() {
   if (currentStep.value > 1) {
     currentStep.value--;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
-// Enhanced form submission
+// Content assignment handlers
+function handleSelectionChanged(event: { selected: AssignedContent[] }) {
+  assignedContent.value = event.selected;
+}
+
+function handleAssignmentNext(event: { selected: AssignedContent[] }) {
+  assignedContent.value = event.selected || [];
+  nextStep();
+}
+
+function handleAssignmentSkip() {
+  assignedContent.value = [];
+  nextStep();
+}
+
+function handleAssignmentError(error: Error) {
+  console.error('Assignment component error:', error);
+  $q.notify({ type: 'negative', message: `Assignment error: ${error.message}`, position: 'top' });
+}
+
+
+// Form submission
 async function handleSubmit() {
-  if (!isFormValid.value) {
+  if (!isFormValid.value || !user.value) {
     $q.notify({
       type: 'negative',
-      message: 'Please complete all required fields',
-      position: 'top'
+      message: 'You must be logged in and complete all required fields to submit content.',
+      position: 'top',
     });
     return;
   }
 
-  submitLoading.value = true;
-
+  loading.value = true;
   try {
-    // Prepare content data
+    const { title, content, description, link, thumbnail, subcategory, scripture } = form.value;
     const contentData = {
-      type: form.value.type,
-      title: form.value.title.trim(),
-      description: form.value.description.trim(),
-      link: form.value.link.trim() || null,
-      thumbnail: form.value.thumbnail.trim() || null,
-      author: form.value.author.trim(),
-      topic: tags.value.length > 0 ? tags.value.join(', ') : form.value.topic.trim(),
-      scripture: form.value.scripture.length > 0 ? form.value.scripture : null,
+      title: title.trim(),
+      content,
+      description: description.trim(),
+      link: link.trim() || null,
+      thumbnail: thumbnail.trim() || null,
+      author_id: user.value?.id || null,
+      topic: tags.value.join(', ') || null,
+      scripture: scripture.length > 0 ? scripture : null,
+      category: subcategory?.name,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    const query: QueryType = {
-      name: form.value.type,
-      data: contentData
-    };
+    const response = await repo.post({ name: 'topic_contents', data: contentData });
 
-    const response = await repo.post(query);
+    if (!response.ok) throw new Error('Submission failed');
 
-    if (response.ok) {
-      // Handle content assignments if any
-      if (assignedContent.value.length > 0) {
-        // Process assignments here if needed
-        console.log('Content assigned to topics:', assignedContent.value);
-      }
-
-      showSuccessDialog.value = true;
-
-      $q.notify({
-        type: 'positive',
-        message: 'Content submitted successfully!',
-        position: 'top'
-      });
-
-      // Clear draft
-      localStorage.removeItem('content_draft');
-    } else {
-      throw new Error('Submission failed');
-    }
-
-  } catch (err) {
+    showSuccessDialog.value = true;
+    $q.notify({ type: 'positive', message: 'Content submitted successfully!', position: 'top' });
+    localStorage.removeItem('content_draft');
+  } catch (err: any) {
     console.error('Submission error:', err);
     $q.notify({
       type: 'negative',
-      message: 'Failed to submit content. Please try again.',
+      message: `Failed to submit content. ${err.message || 'Please try again.'}`,
       position: 'top',
-      actions: [
-        { label: 'Retry', color: 'white', handler: () => handleSubmit() }
-      ]
+      actions: [{ label: 'Retry', color: 'white', handler: handleSubmit }]
     });
   } finally {
-    submitLoading.value = false;
+    loading.value = false;
   }
 }
 
-// Form reset and navigation
+// Dialog and navigation handlers
 function resetForm() {
-  form.value = {
-    type: '',
-    title: '',
-    description: '',
-    link: '',
-    thumbnail: '',
-    author: '',
-    topic: '',
-    scripture: []
-  };
+  Object.assign(form.value, {
+    title: '', content: '', description: '', link: '', thumbnail: '', scripture: [], category: null
+  });
   tags.value = [];
   tagInput.value = '';
   assignedContent.value = [];
   currentStep.value = 1;
   showSuccessDialog.value = false;
-
-  // Reset form validation
+  showPreview.value = false;
   basicForm.value?.resetValidation();
-
-  // Clear any draft
   localStorage.removeItem('content_draft');
 }
 
@@ -680,75 +865,59 @@ function goToLibrary() {
   router.push('/library');
 }
 
-// Auto-save functionality
-let autoSaveTimer: NodeJS.Timeout;
+// Auto-save logic
+let autoSaveTimer: NodeJS.Timeout | null = null;
 
-function startAutoSave() {
-  clearTimeout(autoSaveTimer);
+const startAutoSave = () => {
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+  }
   autoSaveTimer = setTimeout(() => {
-    if (form.value.title || form.value.description) {
-      const draftData = {
-        ...form.value,
-        tags: tags.value,
-        assignedContent: assignedContent.value,
-        currentStep: currentStep.value
-      };
+    if (form.value.title || form.value.content || form.value.description) {
+      const draftData = { ...form.value, tags: tags.value, assignedContent: assignedContent.value, currentStep: currentStep.value };
       localStorage.setItem('content_draft', JSON.stringify(draftData));
     }
-  }, 2000);
-}
+  }, 3000);
+};
 
-// Load draft on mount
-onMounted(() => {
+// --- LIFECYCLE HOOKS & WATCHERS ---
+onMounted(async () => {
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  user.value = currentUser;
   const draft = localStorage.getItem('content_draft');
-  if (draft) {
-    try {
-      const draftData = JSON.parse(draft);
-      if (draftData.title || draftData.description) {
-        $q.dialog({
-          title: 'Draft Found',
-          message: 'Would you like to continue with your previous draft?',
-          cancel: true,
-          persistent: true
-        }).onOk(() => {
-          form.value = {
-            type: draftData.type || '',
-            title: draftData.title || '',
-            description: draftData.description || '',
-            link: draftData.link || '',
-            thumbnail: draftData.thumbnail || '',
-            author: draftData.author || '',
-            topic: draftData.topic || '',
-            scripture: draftData.scripture || []
-          };
-          tags.value = draftData.tags || [];
-          assignedContent.value = draftData.assignedContent || [];
-          if (draftData.currentStep && draftData.currentStep > 1) {
-            currentStep.value = draftData.currentStep;
-          }
-        }).onCancel(() => {
-          localStorage.removeItem('content_draft');
-        });
-      }
-    } catch (e) {
-      localStorage.removeItem('content_draft');
-    }
+  if (!draft) return;
+  try {
+    const draftData = JSON.parse(draft);
+    if (!draftData.title && !draftData.content && !draftData.description) return;
+    $q.dialog({
+      title: 'Draft Found',
+      message: 'Would you like to continue with your previous draft?',
+      cancel: true, persistent: true
+    }).onOk(() => {
+      Object.assign(form.value, draftData);
+      tags.value = draftData.tags || [];
+      assignedContent.value = draftData.assignedContent || [];
+      if (draftData.currentStep) currentStep.value = draftData.currentStep;
+    }).onCancel(() => localStorage.removeItem('content_draft'));
+  } catch (e) {
+    localStorage.removeItem('content_draft');
+    console.error('Failed to parse draft data from local storage.', e);
   }
 });
 
-// Watch form changes for auto-save
 watch([form, tags, assignedContent], startAutoSave, { deep: true });
-
-// Watch currentStep to handle step-specific logic
-watch(currentStep, (newStep, oldStep) => {
-  console.log(`Step changed from ${oldStep} to ${newStep}`);
-
-  if (newStep === 2 && contentAssignmentRef.value) {
-    // Entering content assignment step
-    console.log('Entering content assignment with form data:', form.value);
-  } else if (newStep === 3) {
-    // Entering review step
-    console.log('Entering review step');
+// Watch for category changes to provide user feedback
+watch(() => form.value.category, (newVal, oldVal) => {
+  if (newVal && newVal !== oldVal) {
+    const categoryInfo = selectedCategoryInfo.value;
+    if (categoryInfo && categoryInfo.children && categoryInfo.children.length > 0) {
+      // Optional: Show notification that subcategories are available
+      // $q.notify({
+      //   type: 'info',
+      //   message: `${categoryInfo.children.length} subcategories available for ${newVal}`,
+      //   position: 'top'
+      // });
+    }
   }
 });
 </script>
@@ -761,6 +930,48 @@ watch(currentStep, (newStep, oldStep) => {
 
 .content-stepper {
   background: transparent;
+}
+
+.editor-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fafafa;
+  margin-bottom: 1rem;
+}
+
+.editor-container {
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.preview-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fafafa;
+  margin-bottom: 1rem;
+}
+
+.preview-container {
+  margin-top: 1rem;
+}
+
+.preview-content {
+  line-height: 1.6;
+  color: #333;
+}
+
+.content-preview {
+  max-height: 300px;
+  overflow-y: auto;
+  line-height: 1.6;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 1rem;
+  background: white;
 }
 
 .review-section .review-item {
@@ -788,6 +999,34 @@ watch(currentStep, (newStep, oldStep) => {
   gap: 0.5rem;
 }
 
+/* TinyMCE Editor Overrides */
+:deep(.tox-tinymce) {
+  border-radius: 4px !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+:deep(.tox-editor-header) {
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+:deep(.tox-toolbar__group) {
+  border-right: 1px solid #e0e0e0 !important;
+}
+
+/* Dark mode support for editor */
+.body--dark :deep(.tox-tinymce) {
+  border-color: #424242 !important;
+}
+
+.body--dark :deep(.tox-editor-header) {
+  background: #424242 !important;
+  border-bottom-color: #616161 !important;
+}
+
+.body--dark :deep(.tox-toolbar__group) {
+  border-right-color: #616161 !important;
+}
+
 @media (max-width: 600px) {
   .q-stepper {
     box-shadow: none;
@@ -800,6 +1039,15 @@ watch(currentStep, (newStep, oldStep) => {
   .text-h4 {
     font-size: 1.5rem;
   }
+
+  .editor-section {
+    padding: 0.5rem;
+  }
+
+  /* Mobile-optimized editor toolbar */
+  :deep(.tox-toolbar__group) {
+    flex-wrap: wrap;
+  }
 }
 
 /* Smooth transitions */
@@ -807,23 +1055,104 @@ watch(currentStep, (newStep, oldStep) => {
   transition: all 0.3s ease;
 }
 
-/* Custom scrollbar for textarea */
-.q-field--filled .q-field__control textarea {
-  scrollbar-width: thin;
-  scrollbar-color: #1976d2 #f5f5f5;
-}
-
-.q-field--filled .q-field__control textarea::-webkit-scrollbar {
+/* Custom scrollbar for content preview */
+.content-preview::-webkit-scrollbar {
   width: 6px;
 }
 
-.q-field--filled .q-field__control textarea::-webkit-scrollbar-track {
+.content-preview::-webkit-scrollbar-track {
   background: #f5f5f5;
   border-radius: 3px;
 }
 
-.q-field--filled .q-field__control textarea::-webkit-scrollbar-thumb {
+.content-preview::-webkit-scrollbar-thumb {
   background: #1976d2;
   border-radius: 3px;
 }
+
+/* Print styles for content */
+@media print {
+  .preview-content,
+  .content-preview {
+    color: black !important;
+    background: white !important;
+  }
+}
+
+.category-selection-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fafafa;
+  margin-bottom: 1rem;
+}
+
+.category-preview-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 1px solid #e3e8f0;
+}
+
+.category-chip {
+  transition: all 0.2s ease;
+}
+
+.category-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Dark mode support */
+.body--dark .category-selection-section {
+  background: #424242;
+  border-color: #616161;
+}
+
+.body--dark .category-preview-card {
+  background: linear-gradient(135deg, #424242 0%, #616161 100%);
+  border-color: #757575;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .category-selection-section {
+    padding: 0.75rem;
+  }
+
+  .row.q-gutter-sm {
+    flex-wrap: wrap;
+  }
+
+  .category-chip {
+    margin-bottom: 0.25rem;
+  }
+}
 </style>
+
+<!-- Usage Instructions:
+
+1. Replace your existing category q-select with this enhanced version
+2. Update your form object to include subcategory:
+
+   const form = ref({
+     // ... other fields
+     category: null,
+     subcategory: null, // Add this new field
+   });
+
+3. Update your form submission to handle subcategory:
+
+   const contentData = {
+     // ... other fields
+     category: category?.name,
+     subcategory: form.value.subcategory || null, // Add this line
+   };
+
+4. The component provides:
+   - Hierarchical category selection
+   - Visual category preview
+   - Quick select chips for common categories
+   - Better UX with icons and descriptions
+   - Responsive design
+   - Dark mode support
+
+-->

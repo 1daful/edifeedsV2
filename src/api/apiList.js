@@ -21,11 +21,14 @@ export const dailymotion = new Api({
     endPoint: 'https://api.dailymotion.com',
     params: {}
 });
-export const bibleApi = new Api({
+export const apiBible = new Api({
     endPoint: 'https://api.scripture.api.bible/v1/bibles',
     params: {
-        key: import.meta.env.VITE_BIBLE_API_KEY
+        'api-key': import.meta.env.VITE_BIBLE_API_KEY
     }
+});
+export const bibleApi = new Api({
+    endPoint: 'https://bible-api.com'
 });
 const supabaseConfig = {
     url: import.meta.env.VITE_SUPABASE_API_URL,
