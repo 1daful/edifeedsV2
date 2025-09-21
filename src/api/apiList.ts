@@ -11,7 +11,7 @@ export const youtube = new Api({
   endPoint: "https://www.googleapis.com/youtube/v3",
   params: {
     key: import.meta.env.VITE_YOUTUBE_API_KEY,
-    id: import.meta.env.VITE_YOUTUBE_API_id,
+    id: import.meta.env.VITE_YOUTUBE_API_ID,
   }
 })
 

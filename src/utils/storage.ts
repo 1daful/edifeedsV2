@@ -6,7 +6,7 @@ export async function addFiles(files: File[]) {
 
   const fileName = `${Date.now()}_${file.name}`;
   const { data, error } = await supabase.storage
-    .from('avatars')
+    .from('avatar')
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: true,
@@ -19,7 +19,7 @@ export async function addFiles(files: File[]) {
 
   // Get public URL
   const { data: publicUrlData } = supabase.storage
-    .from('avatars')
+    .from('avatar')
     .getPublicUrl(fileName);
 
   return publicUrlData?.publicUrl || '';

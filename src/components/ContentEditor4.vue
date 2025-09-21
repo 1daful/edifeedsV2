@@ -11,7 +11,6 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, defineProps, defineEmits } from 'vue';
 import { useQuasar } from 'quasar';
@@ -36,7 +35,7 @@ const emit = defineEmits<{
 const $q = useQuasar();
 const editorRef = ref<HTMLElement>();
 const editor = ref<any>(null);
-const loading = ref(true);
+const loading = ref(false);
 const editorId = ref(`tinymce-${Math.random().toString(36).substr(2, 9)}`);
 
 // Default configuration
@@ -52,7 +51,6 @@ const defaultConfig = {
     'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons',
     'template', 'codesample', 'hr', 'pagebreak', 'nonbreaking', 'save'
   ],
-  //images_upload_url: 'https://ugcptzmdhziywxlrvhqg.supabase.co/functions/v1/upload_image',
   toolbar: `
     undo redo | blocks fontfamily fontsize |
     bold italic underline strikethrough |
@@ -123,11 +121,6 @@ const defaultConfig = {
       border-radius: 4px;
     }
   `,
-  /*mobile: {
-    theme: 'mobile',
-    plugins: ['autosave', 'lists', 'autolink'],
-    toolbar: ['undo', 'bold', 'italic', 'styleselect']
-  },*/
   // File and image handling
   file_picker_types: 'image',
   automatic_uploads: true,
@@ -140,7 +133,7 @@ const defaultConfig = {
   autosave_retention: '2m',
 
   // Word count and character limit
-  wordcount_countregex: /[\w\u2019\'-]+/g,
+  wordcount_countregex: /[\w\u2019'-]+/g,
 
   // Link options
   link_assume_external_targets: true,
@@ -210,16 +203,14 @@ const initEditor = async () => {
     const config = {
       ...defaultConfig,
       ...props.config,
-      selector: `#${editorId.value}`,
+      target: editorRef.value,
+      readonly: props.disabled ? 1 : 0,
       setup: (ed: any) => {
         editor.value = ed;
 
         ed.on('init', () => {
           loading.value = false;
           ed.setContent(props.modelValue || '');
-          if (props.disabled) {
-            ed.setMode('readonly');
-          }
           emit('init', ed);
         });
 
@@ -266,12 +257,6 @@ watch(() => props.modelValue, (newValue) => {
   }
 });
 
-watch(() => props.disabled, (newValue) => {
-  if (editor.value) {
-    editor.value.setMode(newValue ? 'readonly' : 'design');
-  }
-});
-
 // Lifecycle hooks
 onMounted(() => {
   loadTinyMCE();
@@ -280,7 +265,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (editor.value && (window as any).tinymce) {
     try {
-      (window as any).tinymce.remove(`#${editorId.value}`);
+      (window as any).tinymce.remove(editorRef.value);
     } catch (error) {
       console.error('Error removing TinyMCE:', error);
     }
@@ -296,6 +281,7 @@ defineExpose({
   getEditor: () => editor.value
 });
 </script>
+
 
 <style scoped>
 .tinymce-editor-wrapper {

@@ -412,20 +412,23 @@ const shareVia = async (platform) => {
         })
         break
 
-      case 'email':
+      case 'email': {
         const emailUrl = `mailto:?subject=${encodeURIComponent(shareData.title)}&body=${encodeURIComponent(shareData.text + '\n\n' + shareData.url)}`
         window.open(emailUrl)
         break
+      }
 
-      case 'whatsapp':
+      case 'whatsapp': {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareData.text + '\n' + shareData.url)}`
         window.open(whatsappUrl, '_blank')
         break
+      }
 
-      case 'twitter':
+      case 'twitter': {
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareData.text)}&url=${encodeURIComponent(shareData.url)}`
         window.open(twitterUrl, '_blank')
         break
+      }
 
       default:
         // Use Web Share API if available

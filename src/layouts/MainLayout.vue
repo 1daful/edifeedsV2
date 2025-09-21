@@ -114,7 +114,7 @@
             <q-item-section avatar>
               <q-icon name="add_circle" color="positive" />
             </q-item-section>
-            <q-item-section>{{ 'CreateContent' }}</q-item-section>
+            <q-item-section> Create Content </q-item-section>
           </q-item>
 
           </q-list>

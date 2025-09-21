@@ -39,8 +39,6 @@
               <TinyMCEEditor
                 v-model="form.content"
                 :config="editorConfig"
-                :disabled="loading"
-                @change="onEditorChange"
               />
             </div>
             <div class="text-caption text-grey-6 q-mt-sm">
@@ -477,7 +475,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { SupabaseRepo } from "@edifiles/services";
@@ -523,6 +521,10 @@ const showSuccessDialog = ref(false);
 const showPreview = ref(false);
 const basicForm = ref<any>(null);
 const assignedContent = ref<AssignedContent[]>([]);
+
+const content = ref('Hello, world!');
+const isDisabled = ref(false);
+const showEditor = ref(true);
 
 // --- CONSTANTS & DATA ---
 
@@ -577,6 +579,7 @@ const editorConfig = computed(() => ({
       const file = blobInfo.blob();
       if (!file) throw new Error('No image file to upload.');
       const result = await addFiles([file]);
+      console.log('Image uploaded, URL:', result);
       if (!result) throw new Error('Image upload failed, no URL returned.');
       return result;
     } catch (error) {
@@ -585,6 +588,11 @@ const editorConfig = computed(() => ({
       return '';
     }
   },
+  convert_urls: false,
+  relative_urls: false,
+  remove_script_host: false,
+  // Handle image loading errors
+  images_upload_credentials: true,
   templates: [
     { title: 'Devotional Template', description: 'Template for daily devotionals', content: '<h2>Daily Devotional - [Date]</h2><blockquote><p><em>"[Scripture Verse]"</em> - [Reference]</p></blockquote><h3>Reflection</h3><p>[Your reflection content here...]</p><h3>Prayer</h3><p>[Prayer content here...]</p><h3>Action Point</h3><p>[Practical application here...]</p>' },
     { title: 'Sermon Notes Template', description: 'Template for sermon notes', content: '<h2>[Sermon Title]</h2><p><strong>Date:</strong> [Date]<br><strong>Speaker:</strong> [Pastor/Minister Name]<br><strong>Text:</strong> [Scripture Reference]</p><h3>Main Points</h3><ol><li><strong>Point 1:</strong> [Description]</li><li><strong>Point 2:</strong> [Description]</li><li><strong>Point 3:</strong> [Description]</li></ol><h3>Key Takeaways</h3><ul><li>[Takeaway 1]</li><li>[Takeaway 2]</li></ul><h3>Personal Application</h3><p>[How to apply this message...]</p>' },
@@ -741,6 +749,7 @@ async function onFileAdded(files: readonly File[]) {
   try {
     const result = await addFiles([files[0]]);
     if (result) {
+      console.log('File uploaded, URL:', result);
       form.value.thumbnail = result;
       $q.notify({ type: 'positive', message: 'Thumbnail uploaded successfully!', position: 'top' });
     } else {
@@ -920,6 +929,7 @@ watch(() => form.value.category, (newVal, oldVal) => {
     }
   }
 });
+
 </script>
 
 <style scoped>
@@ -1127,32 +1137,3 @@ watch(() => form.value.category, (newVal, oldVal) => {
   }
 }
 </style>
-
-<!-- Usage Instructions:
-
-1. Replace your existing category q-select with this enhanced version
-2. Update your form object to include subcategory:
-
-   const form = ref({
-     // ... other fields
-     category: null,
-     subcategory: null, // Add this new field
-   });
-
-3. Update your form submission to handle subcategory:
-
-   const contentData = {
-     // ... other fields
-     category: category?.name,
-     subcategory: form.value.subcategory || null, // Add this line
-   };
-
-4. The component provides:
-   - Hierarchical category selection
-   - Visual category preview
-   - Quick select chips for common categories
-   - Better UX with icons and descriptions
-   - Responsive design
-   - Dark mode support
-
--->

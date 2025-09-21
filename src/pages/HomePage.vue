@@ -36,8 +36,8 @@
           <SectionHeader icon="🍞" title="Daily Manna" subtitle="Bite-sized daily refreshment" />
           <DailyVerse/>
           <div class="quick-access">
-            <!--QuickCard icon="🌅" title="Morning Devotion" description="Start your day with God's word and prayer" />
-            <QuickCard icon="💧" title="Living Waters" description="Heart-soothing worship and scripture moments" />
+            <QuickCard table="morning_devotions" icon="🌅" title="Morning Devotion" description="Start your day with God's word and prayer" />
+            <!--QuickCard icon="💧" title="Living Waters" description="Heart-soothing worship and scripture moments" />
             <QuickCard icon="🌟" title="Grace Drops" description="Short but powerful wisdom pieces" />
             <QuickCard icon="📱" title="Verse of the Day" description="Daily scripture to carry in your heart" /-->
 
@@ -119,11 +119,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import SectionHeader from 'src/components/SectionHeader.vue';
-import CardComponent from 'src/components/CardComponent.vue';
-import LiveBanner from 'src/components/LiveBanner.vue';
-import StatCard from 'src/components/StatCard.vue';
-import CommunityCard from 'src/components/CommunityCard.vue';
+import SectionHeader from '../components/SectionHeader.vue';
+import CardComponent from '../components/CardComponent.vue';
+import LiveBanner from '../components/LiveBanner.vue';
+import StatCard from '../components/StatCard.vue';
+import QuickCard from '../components/QuickCard.vue';
+import CommunityCard from '../components/CommunityCard.vue';
 import DailyVerse from '../components/Home/DailyVerse.vue';
 import EdifeedsLove from '../components/EdifeedsLove.vue';
 

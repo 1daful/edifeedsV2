@@ -52,7 +52,6 @@ const defaultConfig = {
     'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons',
     'template', 'codesample', 'hr', 'pagebreak', 'nonbreaking', 'save'
   ],
-  //images_upload_url: 'https://ugcptzmdhziywxlrvhqg.supabase.co/functions/v1/upload_image',
   toolbar: `
     undo redo | blocks fontfamily fontsize |
     bold italic underline strikethrough |
@@ -123,11 +122,11 @@ const defaultConfig = {
       border-radius: 4px;
     }
   `,
-  /*mobile: {
-    theme: 'mobile',
+  mobile: {
+    //theme: 'mobile',
     plugins: ['autosave', 'lists', 'autolink'],
     toolbar: ['undo', 'bold', 'italic', 'styleselect']
-  },*/
+  },
   // File and image handling
   file_picker_types: 'image',
   automatic_uploads: true,
@@ -211,15 +210,16 @@ const initEditor = async () => {
       ...defaultConfig,
       ...props.config,
       selector: `#${editorId.value}`,
+      readonly: props.disabled,
       setup: (ed: any) => {
         editor.value = ed;
 
         ed.on('init', () => {
           loading.value = false;
           ed.setContent(props.modelValue || '');
-          if (props.disabled) {
+          /*if (props.disabled) {
             ed.setMode('readonly');
-          }
+          }*/
           emit('init', ed);
         });
 
@@ -266,11 +266,11 @@ watch(() => props.modelValue, (newValue) => {
   }
 });
 
-watch(() => props.disabled, (newValue) => {
+/*watch(() => props.disabled, (newValue) => {
   if (editor.value) {
     editor.value.setMode(newValue ? 'readonly' : 'design');
   }
-});
+});*/
 
 // Lifecycle hooks
 onMounted(() => {

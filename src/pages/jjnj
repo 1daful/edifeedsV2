@@ -1,0 +1,20 @@
+// New, corrected code
+const config = {
+  ...defaultConfig,
+  ...props.config,
+  selector: `#${editorId.value}`,
+  // Add the readonly property directly to the config object
+  readonly: props.disabled,
+  setup: (ed: any) => {
+    editor.value = ed;
+
+    ed.on('init', () => {
+      loading.value = false;
+      ed.setContent(props.modelValue || '');
+      // No need to set the mode here anymore
+      emit('init', ed);
+    });
+
+    // ... (rest of the setup function remains the same)
+  }
+};

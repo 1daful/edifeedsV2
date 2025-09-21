@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": ".",
+    },
+    {
+      "path": "../edifiles-services",
+    },
+    {
+      "path": "../bloggist",
+    },
+    {
+      "path": "../Downloads/edifiles-app-master",
+    },
+    {
+      "path": "../glymos",
+    },
+    {
+      "path": "../niville",
+    },
+    {
+      "path": "../Downloads/niville-main",
+    },
+  ],
+}
